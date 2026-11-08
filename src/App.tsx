@@ -12,6 +12,7 @@ import { SettingsPage } from './pages/SettingsPage'
 import { AuthCallback } from './pages/AuthCallback'
 import { CommunityPage } from './pages/community/CommunityPage'
 import { PostDetailPage } from './pages/community/PostDetailPage'
+import { HelpPage } from './pages/HelpPage'
 import type {
   Farm,
   WeatherForecast,
@@ -273,6 +274,7 @@ function App() {
           {/* Community Routes */}
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/community/post/:id" element={<PostDetailPage />} />
+          <Route path="/help" element={<HelpPage />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

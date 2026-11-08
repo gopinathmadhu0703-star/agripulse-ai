@@ -22,7 +22,7 @@ export function Input({
     <div className="flex flex-col gap-1">
       <label
         htmlFor={inputId}
-        className="text-sm font-medium text-stone-700"
+        className="text-sm font-medium text-[#202820]"
       >
         {label}
         {required && <span className="text-red-500 ml-0.5" aria-hidden>*</span>}
@@ -32,13 +32,13 @@ export function Input({
         aria-describedby={error ? `${inputId}-error` : helperText ? `${inputId}-hint` : undefined}
         aria-invalid={!!error}
         className={[
-          'rounded-md border px-3 py-2 text-sm text-stone-800 bg-white',
-          'focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-forest-500',
-          'placeholder:text-stone-400',
-          'disabled:bg-stone-50 disabled:text-stone-400 disabled:cursor-not-allowed',
+          'rounded-md border px-3 py-2 text-sm text-[#202820] bg-white',
+          'focus:outline-none focus:ring-2 focus:ring-[#24452D] focus:border-[#24452D]',
+          'placeholder:text-[#9AA49A]',
+          'disabled:bg-[#F7F8F5] disabled:text-[#9AA49A] disabled:cursor-not-allowed',
           error
             ? 'border-red-400 focus:ring-red-400'
-            : 'border-stone-300',
+            : 'border-[#E0E5DD]',
           className,
         ].join(' ')}
         {...props}
@@ -49,7 +49,7 @@ export function Input({
         </p>
       )}
       {!error && helperText && (
-        <p id={`${inputId}-hint`} className="text-xs text-stone-500">
+        <p id={`${inputId}-hint`} className="text-xs text-[#687168]">
           {helperText}
         </p>
       )}

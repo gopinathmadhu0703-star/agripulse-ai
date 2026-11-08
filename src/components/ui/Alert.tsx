@@ -1,4 +1,5 @@
 import React from 'react'
+import { AlertTriangle, Info, CheckCircle2, XCircle, X } from 'lucide-react'
 
 type AlertVariant = 'error' | 'warning' | 'info' | 'success'
 
@@ -10,48 +11,44 @@ interface AlertProps {
   className?: string
 }
 
-const variantClasses: Record<AlertVariant, string> = {
-  error:   'bg-red-50 border-red-200 text-red-800',
-  warning: 'bg-amber-50 border-amber-200 text-amber-800',
-  info:    'bg-blue-50 border-blue-200 text-blue-800',
-  success: 'bg-green-50 border-green-200 text-green-800',
+const styles: Record<AlertVariant, { wrap: string; icon: React.ReactNode }> = {
+  error:   {
+    wrap: 'bg-red-50 border-red-200 text-red-800',
+    icon: <XCircle size={15} className="text-red-500 shrink-0 mt-px" />,
+  },
+  warning: {
+    wrap: 'bg-amber-50 border-amber-200 text-amber-800',
+    icon: <AlertTriangle size={15} className="text-amber-500 shrink-0 mt-px" />,
+  },
+  info:    {
+    wrap: 'bg-[#EAF0E6] border-[#C8D9C2] text-[#24452D]',
+    icon: <Info size={15} className="text-[#527A45] shrink-0 mt-px" />,
+  },
+  success: {
+    wrap: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+    icon: <CheckCircle2 size={15} className="text-emerald-500 shrink-0 mt-px" />,
+  },
 }
 
-const icons: Record<AlertVariant, string> = {
-  error:   '⚠️',
-  warning: '⚡',
-  info:    'ℹ️',
-  success: '✅',
-}
-
-export function Alert({
-  variant = 'info',
-  title,
-  children,
-  onDismiss,
-  className = '',
-}: AlertProps) {
+export function Alert({ variant = 'info', title, children, onDismiss, className = '' }: AlertProps) {
+  const s = styles[variant]
   return (
     <div
       role="alert"
-      className={[
-        'flex gap-3 rounded-lg border p-4 text-sm',
-        variantClasses[variant],
-        className,
-      ].join(' ')}
+      className={['flex gap-2.5 rounded-md border p-3.5 text-sm', s.wrap, className].join(' ')}
     >
-      <span className="shrink-0 text-base" aria-hidden>{icons[variant]}</span>
-      <div className="flex-1">
+      {s.icon}
+      <div className="flex-1 min-w-0">
         {title && <p className="font-semibold mb-0.5">{title}</p>}
-        <div>{children}</div>
+        <div className="leading-relaxed">{children}</div>
       </div>
       {onDismiss && (
         <button
           onClick={onDismiss}
-          aria-label="Dismiss alert"
-          className="shrink-0 opacity-60 hover:opacity-100 transition-opacity"
+          aria-label="Dismiss"
+          className="shrink-0 opacity-50 hover:opacity-100 transition-opacity"
         >
-          ✕
+          <X size={14} />
         </button>
       )}
     </div>

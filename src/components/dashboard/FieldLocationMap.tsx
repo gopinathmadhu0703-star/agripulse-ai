@@ -1,45 +1,55 @@
+import { useEffect, useState } from 'react'
+import { MapPin } from 'lucide-react'
+import { getFarms, getActiveFarmId } from '../../store/farmStore'
+import type { Farm } from '../../types'
+
 export function FieldLocationMap() {
+  const [farm, setFarm] = useState<Farm | null>(null)
+
+  useEffect(() => {
+    const farms = getFarms()
+    const activeId = getActiveFarmId()
+    const active = farms.find(f => f.id === activeId) ?? farms[0] ?? null
+    setFarm(active)
+  }, [])
+
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-6">Field Location & Map</h3>
-      
-      <div className="space-y-6">
-        {/* Map Placeholder */}
-        <div className="relative bg-emerald-50 rounded-lg overflow-hidden h-48">
-          {/* Simple map grid */}
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-100 to-blue-50">
-            <div className="absolute inset-0 bg-[radial-gradient(#22c55e_1px,transparent_1px)] bg-[length:20px_20px] opacity-20" />
-          </div>
-          
-          {/* Field Boundary */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 border-2 border-emerald-500 rounded-2xl border-dashed" />
-          
-          {/* Location Marker */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <div className="w-12 h-12 bg-white rounded-full border-2 border-emerald-500 flex items-center justify-center shadow-lg">
-              <span className="text-2xl">📍</span>
+    <div className="bg-white border border-[#E0E5DD] rounded-lg p-5">
+      <p className="text-sm font-semibold text-[#202820] mb-4">Field Location</p>
+
+      {farm ? (
+        <div className="space-y-3">
+          {/* Coordinate display — no fake maps */}
+          <div className="bg-[#F7F8F5] border border-[#E0E5DD] rounded-md p-4 flex items-center gap-3">
+            <MapPin size={18} className="text-[#527A45] flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-[#202820]">{farm.locationDisplayName}</p>
+              <p className="text-xs text-[#9AA49A] tabular-nums mt-0.5">
+                {farm.latitude.toFixed(4)}°N, {farm.longitude.toFixed(4)}°E
+              </p>
             </div>
           </div>
-        </div>
-        
-        {/* Farm Details */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-gray-500">Farm name</p>
-            <p className="text-base font-semibold text-gray-900">gopi</p>
-          </div>
-          
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-gray-500">Area</p>
-            <p className="text-base font-semibold text-gray-900">3 ha</p>
-          </div>
-          
-          <div className="md:col-span-2 space-y-1">
-            <p className="text-sm font-medium text-gray-500">Location</p>
-            <p className="text-base font-semibold text-gray-900">Dharmapuri, Tamil Nadu, India</p>
+
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { label: 'Farm', value: farm.name },
+              { label: 'Area', value: `${farm.fieldAreaHa} ha` },
+              { label: 'Irrigation', value: farm.irrigationMethod },
+              { label: 'Soil', value: farm.soilType },
+            ].map(({ label, value }) => (
+              <div key={label} className="bg-[#F7F8F5] rounded-md px-3 py-2">
+                <p className="text-2xs text-[#9AA49A] uppercase tracking-wide">{label}</p>
+                <p className="text-xs font-semibold text-[#202820] mt-0.5 capitalize">{value}</p>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center h-32 text-center">
+          <MapPin size={20} className="text-[#D0DCC9] mb-2" />
+          <p className="text-sm text-[#9AA49A]">No farm selected</p>
+        </div>
+      )}
     </div>
   )
 }

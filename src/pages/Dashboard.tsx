@@ -11,57 +11,39 @@ import { RecentActivity } from '../components/dashboard/RecentActivity'
 
 export function Dashboard() {
   const { t } = useTranslation()
+
   return (
     <DashboardLayout
       title={t('dashboard.title')}
       subtitle={t('dashboard.subtitle')}
     >
-      {/* Farm Summary Cards */}
+      {/* Farm summary bar */}
       <FarmSummaryCards />
-      
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Today's Weather */}
-        <div className="lg:col-span-1">
-          <TodaysWeather />
-        </div>
-        
-        {/* Irrigation Recommendation */}
-        <div className="lg:col-span-1">
-          <IrrigationRecommendation />
-        </div>
+
+      {/* Primary row: weather + recommendation */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        <TodaysWeather />
+        <IrrigationRecommendation />
       </div>
-      
-      {/* Second Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-7 gap-6 mb-6">
-        {/* Crop Water Demand (wider) */}
-        <div className="lg:col-span-4">
+
+      {/* Secondary row: soil + ETc chart */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <SoilMoistureStatus />
+        <div className="lg:col-span-2">
           <CropWaterDemand />
         </div>
-        
-        {/* Field Location & Map (narrower) */}
-        <div className="lg:col-span-3">
-          <FieldLocationMap />
-        </div>
       </div>
-      
-      {/* Third Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* 7-Day Forecast */}
-        <div className="lg:col-span-1">
+
+      {/* Third row: forecast + location */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div className="lg:col-span-2">
           <SevenDayForecast />
         </div>
-        
-        {/* Soil Moisture Status */}
-        <div className="lg:col-span-1">
-          <SoilMoistureStatus />
-        </div>
+        <FieldLocationMap />
       </div>
-      
-      {/* Recent Activity (full width) */}
-      <div className="mb-6">
-        <RecentActivity />
-      </div>
+
+      {/* Activity */}
+      <RecentActivity />
     </DashboardLayout>
   )
 }

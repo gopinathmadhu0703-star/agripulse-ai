@@ -1,196 +1,289 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { User } from '../../types'
+import { Sprout, X, Loader2, Mail, Lock, User as UserIcon, AlertCircle, Info, CheckCircle2 } from 'lucide-react'
+import { useAuth } from './AuthProvider'
 
 interface SignInModalProps {
   isOpen: boolean
   onClose: () => void
-  onSignIn: (user: User, useDemo: boolean) => void
-  isLoading: boolean
-  error: string | null
+  onSignIn?: (user: any, useDemo: boolean) => void
+  isLoading?: boolean
+  error?: string | null
 }
 
-const MOCK_USERS = [
-  {
-    id: 'user_001',
-    name: 'Gopinath Kumar',
-    email: 'gopinath@example.com',
-    picture: 'https://ui-avatars.com/api/?name=Gopinath+Kumar&background=0D8ABC&color=fff',
-    descKey: 'auth.demoAccounts.gopinath' as const,
-  },
-  {
-    id: 'user_002',
-    name: 'Priya Sharma',
-    email: 'priya@example.com',
-    picture: 'https://ui-avatars.com/api/?name=Priya+Sharma&background=10B981&color=fff',
-    descKey: 'auth.demoAccounts.priya' as const,
-  },
-  {
-    id: 'user_003',
-    name: 'Raj Patel',
-    email: 'raj@example.com',
-    picture: 'https://ui-avatars.com/api/?name=Raj+Patel&background=6366F1&color=fff',
-    descKey: 'auth.demoAccounts.raj' as const,
-  },
-]
-
-export function SignInModal({ isOpen, onClose, onSignIn, isLoading, error }: SignInModalProps) {
+export function SignInModal({ isOpen, onClose }: SignInModalProps) {
   const { t } = useTranslation()
-  const [useRealGoogle, setUseRealGoogle] = useState(false)
+  const { signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuth()
 
-  const makeUser = (idx: number): User => ({
-    id: MOCK_USERS[idx].id,
-    name: MOCK_USERS[idx].name,
-    email: MOCK_USERS[idx].email,
-    picture: MOCK_USERS[idx].picture,
-    locale: 'en-US',
-    emailVerified: true,
-    createdAt: new Date().toISOString(),
-  })
-
-  const handleGoogleSignIn = () => {
-    if (useRealGoogle) {
-      onSignIn({} as User, false)
-    } else {
-      onSignIn(makeUser(0), true)
-    }
-  }
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [displayName, setDisplayName] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [infoMsg, setInfoMsg] = useState<string | null>(null)
+  const [showGoogleHelp, setShowGoogleHelp] = useState(false)
 
   if (!isOpen) return null
 
+  const resetForm = () => {
+    setEmail('')
+    setPassword('')
+    setDisplayName('')
+    setErrorMsg(null)
+    setInfoMsg(null)
+  }
+
+  const handleEmailSignIn = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email.trim() || !password) {
+      setErrorMsg('Please enter both email and password.')
+      return
+    }
+
+    setLoading(true)
+    setErrorMsg(null)
+    setInfoMsg(null)
+
+    try {
+      await signInWithEmail(email, password)
+      resetForm()
+      onClose()
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Sign-in failed'
+      if (msg.includes('Email not confirmed')) {
+        setErrorMsg('Email address is not yet confirmed. Please check your inbox or confirm the user in your Supabase Dashboard (Auth > Users).')
+      } else if (msg.includes('Invalid login credentials')) {
+        setErrorMsg('Invalid email or password. If you do not have an account yet, switch to the "Create Account" tab.')
+      } else {
+        setErrorMsg(msg)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleEmailSignUp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email.trim() || !password) {
+      setErrorMsg('Please enter both email and password.')
+      return
+    }
+    if (password.length < 6) {
+      setErrorMsg('Password must be at least 6 characters.')
+      return
+    }
+
+    setLoading(true)
+    setErrorMsg(null)
+    setInfoMsg(null)
+
+    try {
+      const res = await signUpWithEmail(email, password, displayName)
+      if (res.requiresEmailConfirmation) {
+        setInfoMsg(
+          'Account created! A confirmation email has been sent. If email confirmation is enabled in your Supabase project, click the link in your email to activate your account.'
+        )
+      } else {
+        resetForm()
+        onClose()
+      }
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Sign-up failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleClick = async () => {
+    setLoading(true)
+    setErrorMsg(null)
+    try {
+      await signInWithGoogle()
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Google OAuth redirect failed'
+      setErrorMsg(msg)
+      setShowGoogleHelp(true)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onClick={onClose} />
+      <div
+        className="fixed inset-0 bg-[#202820]/60 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md">
+        <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md border border-[#E0E5DD] overflow-hidden">
+
           {/* Header */}
-          <div className="p-6 border-b border-gray-100">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#2C4F1E] flex items-center justify-center">
-                  <span className="text-white text-xl">🌱</span>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{t('auth.signInTitle')}</h3>
-                  <p className="text-sm text-gray-500">{t('auth.chooseDemo')}</p>
-                </div>
+          <div className="flex items-center justify-between px-6 py-4 bg-[#F8F9F5] border-b border-[#E0E5DD]">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-[#24452D] flex items-center justify-center shadow-sm">
+                <Sprout size={18} className="text-white" />
               </div>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition-colors"
-                aria-label={t('common.close')}
-              >
-                <span className="text-xl">×</span>
-              </button>
+              <div>
+                <h2 className="text-base font-semibold text-[#202820]">
+                  {mode === 'signin' ? 'Sign In to AgriPulse AI' : 'Create an Account'}
+                </h2>
+                <p className="text-xs text-[#687168]">Connected to Supabase Cloud</p>
+              </div>
             </div>
+            <button
+              onClick={onClose}
+              className="text-[#9AA49A] hover:text-[#202820] transition-colors p-1 rounded-md"
+              aria-label={t('common.close')}
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex border-b border-[#E0E5DD] bg-gray-50/50">
+            <button
+              type="button"
+              onClick={() => { setMode('signin'); setErrorMsg(null); setInfoMsg(null) }}
+              className={`flex-1 py-3 text-xs font-semibold border-b-2 transition-colors ${
+                mode === 'signin'
+                  ? 'border-[#24452D] text-[#24452D] bg-white'
+                  : 'border-transparent text-[#687168] hover:text-[#202820]'
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => { setMode('signup'); setErrorMsg(null); setInfoMsg(null) }}
+              className={`flex-1 py-3 text-xs font-semibold border-b-2 transition-colors ${
+                mode === 'signup'
+                  ? 'border-[#24452D] text-[#24452D] bg-white'
+                  : 'border-transparent text-[#687168] hover:text-[#202820]'
+              }`}
+            >
+              Create Account
+            </button>
           </div>
 
           {/* Content */}
-          <div className="p-6">
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-                <p className="text-sm text-red-700">{error}</p>
+          <div className="p-6 space-y-4">
+            {errorMsg && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2.5 text-xs text-red-700">
+                <AlertCircle size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
+                <div className="flex-1 leading-relaxed">{errorMsg}</div>
               </div>
             )}
 
-            {/* Demo accounts */}
-            <div className="space-y-4 mb-8">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm text-gray-500">{t('auth.selectDemo')}</p>
-                <div className="flex items-center gap-2">
-                  <label className="text-xs text-gray-500">{t('auth.useRealGoogle')}</label>
-                  <button
-                    role="switch"
-                    aria-checked={useRealGoogle}
-                    onClick={() => setUseRealGoogle(!useRealGoogle)}
-                    className={`relative w-10 h-5 rounded-full cursor-pointer transition-colors ${
-                      useRealGoogle ? 'bg-emerald-500' : 'bg-gray-300'
-                    }`}
-                  >
-                    <span
-                      className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                        useRealGoogle ? 'left-5' : 'left-0.5'
-                      }`}
+            {infoMsg && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-start gap-2.5 text-xs text-emerald-800">
+                <CheckCircle2 size={16} className="text-emerald-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1 leading-relaxed">{infoMsg}</div>
+              </div>
+            )}
+
+            {/* Email form */}
+            <form onSubmit={mode === 'signin' ? handleEmailSignIn : handleEmailSignUp} className="space-y-3">
+              {mode === 'signup' && (
+                <div>
+                  <label className="block text-xs font-medium text-[#202820] mb-1">Full Name</label>
+                  <div className="relative">
+                    <UserIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA49A]" />
+                    <input
+                      type="text"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder="e.g. Ramesh Kumar"
+                      className="w-full text-xs bg-[#F7F8F5] border border-[#E0E5DD] rounded-lg pl-9 pr-3 py-2.5 text-[#202820] focus:ring-2 focus:ring-[#24452D] focus:border-[#24452D] outline-none"
                     />
-                  </button>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-medium text-[#202820] mb-1">Email Address</label>
+                <div className="relative">
+                  <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA49A]" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="farmer@example.com"
+                    className="w-full text-xs bg-[#F7F8F5] border border-[#E0E5DD] rounded-lg pl-9 pr-3 py-2.5 text-[#202820] focus:ring-2 focus:ring-[#24452D] focus:border-[#24452D] outline-none"
+                  />
                 </div>
               </div>
 
-              {!useRealGoogle &&
-                MOCK_USERS.map((user, index) => (
-                  <button
-                    key={user.id}
-                    onClick={() => onSignIn(makeUser(index), true)}
-                    disabled={isLoading}
-                    className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-200 hover:border-[#ACD1A0] transition-all hover:shadow-md text-left"
-                  >
-                    <img src={user.picture} alt={user.name} className="w-12 h-12 rounded-full" />
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">{user.name}</p>
-                      <p className="text-sm text-gray-500">{user.email}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{t(user.descKey)}</p>
-                    </div>
-                  </button>
-                ))}
-            </div>
+              <div>
+                <label className="block text-xs font-medium text-[#202820] mb-1">Password</label>
+                <div className="relative">
+                  <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA49A]" />
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full text-xs bg-[#F7F8F5] border border-[#E0E5DD] rounded-lg pl-9 pr-3 py-2.5 text-[#202820] focus:ring-2 focus:ring-[#24452D] focus:border-[#24452D] outline-none"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full mt-2 py-2.5 px-4 bg-[#24452D] hover:bg-[#1a3321] text-white text-xs font-medium rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
+              >
+                {loading ? <Loader2 size={14} className="animate-spin" /> : null}
+                <span>{mode === 'signin' ? 'Sign In with Email' : 'Create Real Account'}</span>
+              </button>
+            </form>
 
             {/* Divider */}
-            <div className="relative mb-6">
+            <div className="relative my-4">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
+                <div className="w-full border-t border-[#E0E5DD]" />
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">{t('auth.orSignInWith')}</span>
+              <div className="relative flex justify-center">
+                <span className="px-3 bg-white text-[11px] text-[#9AA49A] uppercase tracking-wider">or</span>
               </div>
             </div>
 
-            {/* Google button */}
-            <div className="space-y-3">
-              <button
-                onClick={handleGoogleSignIn}
-                disabled={isLoading}
-                className={`w-full flex items-center justify-center gap-3 p-4 rounded-xl border transition-all ${
-                  useRealGoogle
-                    ? 'border-emerald-200 bg-emerald-50 hover:bg-emerald-100 hover:border-emerald-300'
-                    : 'border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-gray-300'
-                } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                <img src="https://www.google.com/favicon.ico" alt="Google" className="w-6 h-6" />
-                <span className={`font-medium ${useRealGoogle ? 'text-emerald-700' : 'text-gray-700'}`}>
-                  {isLoading
-                    ? t('auth.signingIn')
-                    : useRealGoogle
-                    ? `${t('auth.signInWithGoogle')} (OAuth)`
-                    : `${t('auth.signInWithGoogle')} (Demo)`}
-                </span>
-              </button>
+            {/* Google OAuth Button */}
+            <button
+              type="button"
+              onClick={handleGoogleClick}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2.5 py-2.5 rounded-lg border border-[#E0E5DD] bg-white text-xs font-medium text-[#202820] hover:bg-[#F8F9F5] transition-colors shadow-sm disabled:opacity-50"
+            >
+              <img src="https://www.google.com/favicon.ico" alt="" className="w-4 h-4" />
+              <span>Continue with Google</span>
+            </button>
 
-              <div className="text-xs text-gray-500 text-center space-y-1">
-                {useRealGoogle ? (
-                  <>
-                    <p>{t('auth.realGoogleNote')}</p>
-                    <p className="text-amber-600 font-medium">{t('auth.requiresConfig')}</p>
-                  </>
-                ) : (
-                  <p>{t('auth.demoNote')}</p>
-                )}
+            {showGoogleHelp && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-900 leading-relaxed">
+                <p className="font-semibold mb-1 flex items-center gap-1">
+                  <Info size={13} className="text-amber-700" /> Google OAuth Setup Required:
+                </p>
+                To enable Google sign-in: In your Supabase Dashboard, go to <strong>Authentication &gt; Providers &gt; Google</strong>, toggle it On, and paste your Google Client ID &amp; Secret. In Google Cloud Console, set redirect URI to your Supabase project URL.
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Footer */}
-          <div className="px-6 py-4 bg-gray-50 rounded-b-2xl border-t border-gray-100">
-            <p className="text-sm text-gray-500 text-center">
-              {t('auth.noAccount')}{' '}
-              <button
-                onClick={() => onSignIn(makeUser(0), true)}
-                className="text-[#2C4F1E] font-medium hover:underline"
-              >
-                {t('auth.useDemo')}
-              </button>
-            </p>
+          {/* Footer - Local mode notice */}
+          <div className="px-6 py-3.5 bg-[#F8F9F5] border-t border-[#E0E5DD] flex items-center justify-between text-xs">
+            <span className="text-[#687168]">Want to test offline?</span>
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-[#24452D] font-semibold hover:underline"
+            >
+              Use Browser Storage
+            </button>
           </div>
         </div>
       </div>

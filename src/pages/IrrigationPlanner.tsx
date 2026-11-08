@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { DashboardLayout } from '../components/DashboardLayout'
+import { Plus } from 'lucide-react'
 import type { Farm, IrrigationTask } from '../types'
 import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
@@ -73,10 +75,11 @@ export function IrrigationPlanner({
   const tabData = tab === 'upcoming' ? upcoming : completed
 
   return (
-    <div className="space-y-5">
+    <DashboardLayout title={t('planner.title')} subtitle={t('planner.subtitle')}>
+      <div className="space-y-5 max-w-3xl">
       {/* Tab switcher */}
       <div className="flex items-center justify-between">
-        <div className="flex gap-1 bg-stone-100 rounded-lg p-1">
+        <div className="flex gap-1 bg-[#F7F8F5] rounded-lg p-1">
           {(['upcoming', 'completed'] as Tab[]).map((tabKey) => (
             <button
               key={tabKey}
@@ -84,8 +87,8 @@ export function IrrigationPlanner({
               className={[
                 'px-4 py-1.5 rounded-md text-sm font-medium transition-colors',
                 tab === tabKey
-                  ? 'bg-white shadow-sm text-stone-800'
-                  : 'text-stone-500 hover:text-stone-700',
+                  ? 'bg-white shadow-sm text-[#202820]'
+                  : 'text-[#687168] hover:text-[#202820]',
               ].join(' ')}
             >
               {TAB_LABELS[tabKey]} ({tabKey === 'upcoming' ? upcoming.length : completed.length})
@@ -94,7 +97,7 @@ export function IrrigationPlanner({
         </div>
         {farms.length > 0 && (
           <Button size="sm" variant="primary" onClick={() => setShowNewTask(true)}>
-            + {t('planner.addTask')}
+            <Plus size={13} /> {t('planner.addTask')}
           </Button>
         )}
       </div>
@@ -105,9 +108,11 @@ export function IrrigationPlanner({
 
       {tabData.length === 0 ? (
         <Card>
-          <div className="text-center py-10 text-stone-500">
-            <p className="text-3xl mb-3" aria-hidden>{tab === 'upcoming' ? '📅' : '✅'}</p>
-            <p className="font-medium text-stone-700 mb-1">{t('planner.noTasks')}</p>
+          <div className="text-center py-10">
+            <div className="w-10 h-10 rounded-full bg-[#EAF0E6] flex items-center justify-center mx-auto mb-3">
+              <Plus size={18} className="text-[#527A45]" />
+            </div>
+            <p className="text-sm font-medium text-[#202820] mb-1">{t('planner.noTasks')}</p>
             {tab === 'upcoming' && farms.length > 0 && (
               <Button size="sm" variant="primary" className="mt-3" onClick={() => setShowNewTask(true)}>
                 {t('planner.addTask')}
@@ -127,7 +132,7 @@ export function IrrigationPlanner({
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div>
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <p className="font-medium text-stone-800">
+                      <p className="font-medium text-[#202820]">
                         {farm?.name ?? t('common.unknown')}
                       </p>
                       {task.status === 'completed' ? (
@@ -138,11 +143,11 @@ export function IrrigationPlanner({
                         <Badge variant="info" size="sm">{t('planner.status.pending')}</Badge>
                       )}
                     </div>
-                    <p className="text-sm text-stone-500">
-                      📅 {formatDate(task.scheduledDate)} · ~{task.estimatedVolumeLiters.toLocaleString()} L
+                    <p className="text-sm text-[#687168]">
+                      {formatDate(task.scheduledDate)} · ~{task.estimatedVolumeLiters.toLocaleString()} L
                     </p>
                     {task.notes && (
-                      <p className="text-xs text-stone-400 mt-1">{task.notes}</p>
+                      <p className="text-xs text-[#9AA49A] mt-1">{task.notes}</p>
                     )}
                   </div>
                   <div className="flex gap-2 shrink-0">
@@ -192,13 +197,13 @@ export function IrrigationPlanner({
         <div className="space-y-4">
           {formError && <Alert variant="warning">{formError}</Alert>}
           <div>
-            <label className="text-sm font-medium text-stone-700 block mb-1">
+            <label className="text-sm font-medium text-[#202820] block mb-1">
               {t('farms.farmName')}
             </label>
             <select
               value={farmId}
               onChange={(e) => setFarmId(e.target.value)}
-              className="w-full border border-stone-300 rounded-md px-3 py-2 text-sm"
+              className="w-full border border-[#E0E5DD] rounded-md px-3 py-2 text-sm"
             >
               {farms.map((f) => (
                 <option key={f.id} value={f.id}>{f.name}</option>
@@ -246,7 +251,7 @@ export function IrrigationPlanner({
         }
       >
         <div className="space-y-3">
-          <p className="text-sm text-stone-600">{t('history.volume')}:</p>
+          <p className="text-sm text-[#687168]">{t('history.volume')}:</p>
           <Input
             label={`${t('history.volume')} (L)`}
             type="number"
@@ -258,5 +263,6 @@ export function IrrigationPlanner({
         </div>
       </Dialog>
     </div>
+    </DashboardLayout>
   )
 }

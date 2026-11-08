@@ -216,20 +216,20 @@ export function FarmForm({ initial, onSave, onCancel }: FarmFormProps) {
         {geoError && <Alert variant="warning">{geoError}</Alert>}
 
         {geoResults.length > 0 && (
-          <ul className="border border-stone-200 rounded-lg divide-y divide-stone-100 bg-white shadow-sm overflow-hidden">
+          <ul className="border border-[#E0E5DD] rounded-lg divide-y divide-stone-100 bg-white shadow-sm overflow-hidden">
             {geoResults.map((g) => (
               <li key={g.id}>
                 <button
                   type="button"
                   onClick={() => handleGeoSelect(g)}
-                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-forest-50 transition-colors"
+                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-[#EAF0E6] transition-colors"
                 >
-                  <span className="font-medium text-stone-800">{g.name}</span>
+                  <span className="font-medium text-[#202820]">{g.name}</span>
                   {g.admin1 && (
-                    <span className="text-stone-500">, {g.admin1}</span>
+                    <span className="text-[#687168]">, {g.admin1}</span>
                   )}
-                  <span className="text-stone-400">, {g.country}</span>
-                  <span className="text-xs text-stone-400 ml-2">
+                  <span className="text-[#9AA49A]">, {g.country}</span>
+                  <span className="text-xs text-[#9AA49A] ml-2">
                     ({g.latitude.toFixed(3)}, {g.longitude.toFixed(3)})
                   </span>
                 </button>

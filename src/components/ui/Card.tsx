@@ -10,33 +10,31 @@ interface CardProps {
 
 const paddingClasses = {
   none: '',
-  sm: 'p-3',
-  md: 'p-5',
-  lg: 'p-6',
+  sm:  'p-4',
+  md:  'p-5',
+  lg:  'p-6',
 }
 
-export function Card({
-  children,
-  className = '',
-  header,
-  footer,
-  padding = 'md',
-}: CardProps) {
+export function Card({ children, className = '', header, footer, padding = 'md' }: CardProps) {
   return (
     <div
       className={[
-        'bg-white rounded-lg border border-stone-200 shadow-sm',
+        'bg-white border border-[#E0E5DD] rounded-lg shadow-card',
         className,
       ].join(' ')}
     >
       {header && (
-        <div className="px-5 py-3 border-b border-stone-100 font-medium text-stone-800">
-          {header}
+        <div className="px-5 py-3 border-b border-[#E0E5DD]">
+          {typeof header === 'string' ? (
+            <p className="text-sm font-semibold text-[#202820]">{header}</p>
+          ) : (
+            header
+          )}
         </div>
       )}
       <div className={paddingClasses[padding]}>{children}</div>
       {footer && (
-        <div className="px-5 py-3 border-t border-stone-100 text-sm text-stone-500">
+        <div className="px-5 py-3 border-t border-[#E0E5DD] text-xs text-[#687168]">
           {footer}
         </div>
       )}

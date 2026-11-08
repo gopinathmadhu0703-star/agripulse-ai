@@ -1,58 +1,99 @@
-interface ForecastDay {
-  day: string
-  date: string
-  icon: string
-  high: number
-  low: number
-  rainfall: number
-}
-
-const forecastData: ForecastDay[] = [
-  { day: 'Mon', date: 'Oct 12', icon: '☀️', high: 34, low: 24, rainfall: 0.0 },
-  { day: 'Tue', date: 'Oct 13', icon: '⛅', high: 33, low: 25, rainfall: 0.0 },
-  { day: 'Wed', date: 'Oct 14', icon: '🌤️', high: 34, low: 24, rainfall: 0.0 },
-  { day: 'Thu', date: 'Oct 15', icon: '☁️', high: 32, low: 25, rainfall: 0.2 },
-  { day: 'Fri', date: 'Oct 16', icon: '🌦️', high: 31, low: 25, rainfall: 1.5 },
-  { day: 'Sat', date: 'Oct 17', icon: '🌧️', high: 30, low: 24, rainfall: 3.2 },
-  { day: 'Sun', date: 'Oct 18', icon: '🌦️', high: 31, low: 25, rainfall: 0.8 },
-]
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { ArrowRight, RefreshCw } from 'lucide-react'
+import { getFarms, getActiveFarmId } from '../../store/farmStore'
+import { fetchWeatherForecast } from '../../api/openMeteo'
+import { getWeatherIcon, getWeatherDescription } from '../../api/openMeteo'
+import { formatDate, formatTemp, formatMm } from '../../utils/formatters'
+import type { WeatherForecast } from '../../types'
 
 export function SevenDayForecast() {
+  const [forecast, setForecast] = useState<WeatherForecast | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const load = async () => {
+    const farms = getFarms()
+    const activeId = getActiveFarmId()
+    const farm = farms.find(f => f.id === activeId) ?? farms[0]
+    if (!farm) { setError('No farm'); return }
+    setLoading(true); setError(null)
+    try {
+      const data = await fetchWeatherForecast(farm.latitude, farm.longitude, 7)
+      setForecast(data)
+    } catch {
+      setError('Weather unavailable')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { load() }, [])
+
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">7-Day Weather Forecast</h3>
-        <button className="text-sm font-medium text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
-          View Details
-          <span>→</span>
-        </button>
-      </div>
-      
-      <div className="overflow-x-auto">
-        <div className="flex min-w-max gap-4">
-          {forecastData.map((day, index) => (
-            <div
-              key={index}
-              className="flex flex-col items-center bg-gray-50 rounded-lg p-4 min-w-[120px]"
-            >
-              <p className="text-sm font-medium text-gray-500 mb-1">{day.day}</p>
-              <p className="text-sm text-gray-700 mb-3">{day.date}</p>
-              
-              <div className="text-3xl mb-4">{day.icon}</div>
-              
-              <div className="text-center mb-2">
-                <p className="text-lg font-semibold text-gray-900">
-                  {day.high}°/{day.low}°
-                </p>
-              </div>
-              
-              <p className="text-sm text-gray-600">
-                {day.rainfall.toFixed(1)} mm
-              </p>
-            </div>
-          ))}
+    <div className="bg-white border border-[#E0E5DD] rounded-lg p-5">
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm font-semibold text-[#202820]">7-Day Forecast</p>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={load}
+            disabled={loading}
+            className="p-1 text-[#9AA49A] hover:text-[#24452D] transition-colors disabled:opacity-40"
+            aria-label="Refresh"
+          >
+            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
+          </button>
+          <Link to="/weather" className="text-xs text-[#527A45] hover:underline flex items-center gap-1">
+            Full forecast <ArrowRight size={11} />
+          </Link>
         </div>
       </div>
+
+      {error && <p className="text-xs text-[#9AA49A]">{error}</p>}
+
+      {loading && !forecast && (
+        <div className="animate-pulse flex gap-2">
+          {[...Array(7)].map((_, i) => (
+            <div key={i} className="flex-1 h-20 bg-[#F7F8F5] rounded" />
+          ))}
+        </div>
+      )}
+
+      {forecast && (
+        <div className="overflow-x-auto">
+          <div className="flex gap-1.5 min-w-max">
+            {forecast.daily.map((day, i) => (
+              <div
+                key={day.date}
+                className={`flex flex-col items-center px-3 py-2.5 rounded-md min-w-[68px] ${
+                  i === 0 ? 'bg-[#EAF0E6] border border-[#C8D9C2]' : 'bg-[#F7F8F5]'
+                }`}
+              >
+                <p className="text-2xs font-semibold text-[#687168] uppercase">
+                  {i === 0 ? 'Today' : formatDate(day.date).slice(0, 3)}
+                </p>
+                <span
+                  className="text-xl my-1.5"
+                  title={getWeatherDescription(day.dominantWeatherCode)}
+                >
+                  {getWeatherIcon(day.dominantWeatherCode)}
+                </span>
+                <p className="text-xs font-semibold text-[#202820]">
+                  {formatTemp(day.tempMaxC, 'celsius').replace('°C', '')}°
+                </p>
+                <p className="text-2xs text-[#9AA49A]">
+                  {formatTemp(day.tempMinC, 'celsius').replace('°C', '')}°
+                </p>
+                {day.precipitationMm > 0 && (
+                  <p className="text-2xs text-blue-500 mt-1 tabular-nums">
+                    {formatMm(day.precipitationMm)}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { DashboardLayout } from '../components/DashboardLayout'
+import { Droplets, ClipboardList, BarChart2 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import type { RecommendationRecord, IrrigationEvent, Farm } from '../types'
 import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
@@ -78,9 +81,10 @@ export function HistoryPage({ recommendations, events, farms }: HistoryPageProps
   ]
 
   return (
-    <div className="space-y-5">
+    <DashboardLayout title={t('history.title')} subtitle={t('history.subtitle')}>
+      <div className="space-y-5">
       {/* Tabs */}
-      <div className="flex gap-1 bg-stone-100 rounded-lg p-1 flex-wrap">
+      <div className="flex gap-1 bg-[#F7F8F5] rounded-lg p-1 flex-wrap">
         {TABS.map((tabItem) => (
           <button
             key={tabItem.key}
@@ -88,8 +92,8 @@ export function HistoryPage({ recommendations, events, farms }: HistoryPageProps
             className={[
               'px-4 py-1.5 rounded-md text-sm font-medium transition-colors',
               tab === tabItem.key
-                ? 'bg-white shadow-sm text-stone-800'
-                : 'text-stone-500 hover:text-stone-700',
+                ? 'bg-white shadow-sm text-[#202820]'
+                : 'text-[#687168] hover:text-[#202820]',
             ].join(' ')}
           >
             {tabItem.label}
@@ -111,11 +115,11 @@ export function HistoryPage({ recommendations, events, farms }: HistoryPageProps
             </Button>
           </div>
           {recommendations.length === 0 ? (
-            <EmptyState icon="💧" message={t('history.noRecords')} />
+            <EmptyState Icon={Droplets} message={t('history.noRecords')} />
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-stone-200 bg-white">
+            <div className="overflow-x-auto rounded-lg border border-[#E0E5DD] bg-white">
               <table className="w-full text-sm">
-                <thead className="bg-stone-50 text-xs text-stone-600 uppercase">
+                <thead className="bg-[#F7F8F5] text-xs text-[#687168] uppercase">
                   <tr>
                     <th className="text-left px-4 py-2.5">{t('history.date')}</th>
                     <th className="text-left px-4 py-2.5">{t('history.farm')}</th>
@@ -128,28 +132,28 @@ export function HistoryPage({ recommendations, events, farms }: HistoryPageProps
                 </thead>
                 <tbody>
                   {[...recommendations].reverse().map((r) => (
-                    <tr key={r.id} className="border-t border-stone-100 hover:bg-stone-50">
-                      <td className="px-4 py-2.5 text-stone-500 whitespace-nowrap">
+                    <tr key={r.id} className="border-t border-[#E0E5DD] hover:bg-[#F7F8F5]">
+                      <td className="px-4 py-2.5 text-[#687168] whitespace-nowrap">
                         {formatDateTime(r.createdAt)}
                       </td>
-                      <td className="px-4 py-2.5 text-stone-700">{r.farmName}</td>
+                      <td className="px-4 py-2.5 text-[#202820]">{r.farmName}</td>
                       <td className="px-4 py-2.5">
                         <Badge variant={ACTION_BADGE[r.recommendation.action] ?? 'neutral'} size="sm">
                           {t(`advisor.action.${r.recommendation.action}` as Parameters<typeof t>[0])}
                         </Badge>
                       </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-stone-600">
+                      <td className="px-4 py-2.5 text-right tabular-nums text-[#687168]">
                         {formatMm(r.recommendation.etcDailyMm)}
                       </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-stone-600">
+                      <td className="px-4 py-2.5 text-right tabular-nums text-[#687168]">
                         {formatMm(r.recommendation.netDemandMm)}
                       </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-stone-700 font-medium">
+                      <td className="px-4 py-2.5 text-right tabular-nums text-[#202820] font-medium">
                         {r.recommendation.action === 'irrigate'
                           ? formatVolume(r.recommendation.irrigationVolumeLiters)
                           : '—'}
                       </td>
-                      <td className="px-4 py-2.5 text-right text-stone-500">
+                      <td className="px-4 py-2.5 text-right text-[#687168]">
                         {r.input.horizonDays}d
                       </td>
                     </tr>
@@ -175,11 +179,11 @@ export function HistoryPage({ recommendations, events, farms }: HistoryPageProps
             </Button>
           </div>
           {events.length === 0 ? (
-            <EmptyState icon="📋" message={t('history.noRecords')} />
+            <EmptyState Icon={ClipboardList} message={t('history.noRecords')} />
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-stone-200 bg-white">
+            <div className="overflow-x-auto rounded-lg border border-[#E0E5DD] bg-white">
               <table className="w-full text-sm">
-                <thead className="bg-stone-50 text-xs text-stone-600 uppercase">
+                <thead className="bg-[#F7F8F5] text-xs text-[#687168] uppercase">
                   <tr>
                     <th className="text-left px-4 py-2.5">{t('history.date')}</th>
                     <th className="text-left px-4 py-2.5">{t('history.farm')}</th>
@@ -190,14 +194,14 @@ export function HistoryPage({ recommendations, events, farms }: HistoryPageProps
                 </thead>
                 <tbody>
                   {[...events].reverse().map((e) => (
-                    <tr key={e.id} className="border-t border-stone-100 hover:bg-stone-50">
-                      <td className="px-4 py-2.5 text-stone-500">{e.date}</td>
-                      <td className="px-4 py-2.5 text-stone-700">{getFarmName(e.farmId)}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums font-medium text-stone-800">
+                    <tr key={e.id} className="border-t border-[#E0E5DD] hover:bg-[#F7F8F5]">
+                      <td className="px-4 py-2.5 text-[#687168]">{e.date}</td>
+                      <td className="px-4 py-2.5 text-[#202820]">{getFarmName(e.farmId)}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums font-medium text-[#202820]">
                         {formatVolume(e.actualVolumeLiters)}
                       </td>
-                      <td className="px-4 py-2.5 text-stone-500 text-xs">{e.notes || '—'}</td>
-                      <td className="px-4 py-2.5 text-stone-400 text-xs whitespace-nowrap">
+                      <td className="px-4 py-2.5 text-[#687168] text-xs">{e.notes || '—'}</td>
+                      <td className="px-4 py-2.5 text-[#9AA49A] text-xs whitespace-nowrap">
                         {formatDateTime(e.recordedAt)}
                       </td>
                     </tr>
@@ -213,7 +217,7 @@ export function HistoryPage({ recommendations, events, farms }: HistoryPageProps
       {tab === 'analytics' && (
         <div className="space-y-5">
           {chartData.length === 0 ? (
-            <EmptyState icon="📈" message={t('history.noRecords')} />
+            <EmptyState Icon={BarChart2} message={t('history.noRecords')} />
           ) : (
             <>
               <Card header="ETc Trend (last 20 recommendations)">
@@ -254,15 +258,16 @@ export function HistoryPage({ recommendations, events, farms }: HistoryPageProps
         </div>
       )}
     </div>
+    </DashboardLayout>
   )
 }
 
-function EmptyState({ icon, message }: { icon: string; message: string }) {
+function EmptyState({ Icon, message }: { Icon: LucideIcon; message: string }) {
   return (
     <Card>
-      <div className="text-center py-10 text-stone-500">
-        <p className="text-3xl mb-3" aria-hidden>{icon}</p>
-        <p className="text-sm">{message}</p>
+      <div className="text-center py-10">
+        <Icon size={28} className="mx-auto mb-3 text-[#C8D9C2]" />
+        <p className="text-sm text-[#9AA49A]">{message}</p>
       </div>
     </Card>
   )

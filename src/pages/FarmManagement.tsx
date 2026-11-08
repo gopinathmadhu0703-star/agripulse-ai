@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DashboardLayout } from '../components/DashboardLayout'
+import { Sprout, MapPin, Ruler, Droplets, Pencil, Trash2, Plus, Radio } from 'lucide-react'
 import type { Farm } from '../types'
 import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
@@ -52,17 +53,16 @@ export function FarmManagement({
         title={mode === 'add' ? t('farms.addFarm') : `${t('farms.editFarm')}: ${editingFarm?.name}`}
         subtitle={t('farms.subtitle')}
       >
-        <div className="max-w-3xl space-y-6">
-          <div className="flex items-center gap-4 mb-6">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => { setMode('list'); setEditingFarm(undefined) }}
-            >
-              ← {t('common.back')}
-            </Button>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-xl p-6">
+        <div className="max-w-2xl">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => { setMode('list'); setEditingFarm(undefined) }}
+            className="mb-5"
+          >
+            ← {t('common.back')}
+          </Button>
+          <div className="bg-white border border-[#E0E5DD] rounded-lg p-6">
             <FarmForm
               initial={editingFarm}
               onSave={handleSave}
@@ -83,34 +83,29 @@ export function FarmManagement({
         {/* Header Actions */}
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-medium text-gray-900">
+            <h3 className="text-lg font-medium text-[#202820]">
               {farms.length} {farms.length !== 1 ? t('nav.farms').toLowerCase() : t('nav.farms').toLowerCase().replace(/s$/, '')}
             </h3>
-            <p className="text-sm text-gray-500 mt-1">{t('farms.setActive')}</p>
+            <p className="text-sm text-[#687168] mt-1">{t('farms.setActive')}</p>
           </div>
           <Button
             onClick={() => setMode('add')}
-            size="lg"
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            size="md"
           >
-            + {t('farms.addFarm')}
+            <Plus size={14} /> {t('farms.addFarm')}
           </Button>
         </div>
 
         {/* Farm list or empty state */}
         {farms.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-emerald-50 flex items-center justify-center">
-              <span className="text-3xl">🌾</span>
+          <div className="bg-white border border-[#E0E5DD] rounded-lg p-12 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#EAF0E6] flex items-center justify-center">
+              <Sprout size={24} className="text-[#527A45]" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('farms.noFarms')}</h3>
-            <p className="text-gray-500 mb-6">{t('farms.subtitle')}</p>
-            <Button
-              onClick={() => setMode('add')}
-              size="lg"
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
-            >
-              {t('farms.addFarm')}
+            <h3 className="text-sm font-semibold text-[#202820] mb-1">{t('farms.noFarms')}</h3>
+            <p className="text-sm text-[#9AA49A] mb-5">{t('farms.subtitle')}</p>
+            <Button onClick={() => setMode('add')}>
+              <Plus size={14} /> {t('farms.addFarm')}
             </Button>
           </div>
         ) : (
@@ -118,34 +113,34 @@ export function FarmManagement({
             {farms.map((farm) => (
               <div
                 key={farm.id}
-                className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-sm transition-shadow"
+                className="bg-white border border-[#E0E5DD] rounded-lg p-6 hover:shadow-sm transition-shadow"
               >
                 <div className="flex items-start justify-between gap-6">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-3">
-                      <h3 className="text-lg font-semibold text-gray-900">{farm.name}</h3>
+                      <h3 className="text-lg font-semibold text-[#202820]">{farm.name}</h3>
                       {farm.id === activeFarmId && (
                         <Badge variant="success" size="sm">{t('farms.activeFarm')}</Badge>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                      <InfoCell icon="📍" label={t('farms.location')} value={farm.locationDisplayName} />
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                      <InfoCell Icon={MapPin} label={t('farms.location')} value={farm.locationDisplayName} />
                       <InfoCell
-                        icon="🌱"
+                        Icon={Sprout}
                         label={t('farms.crop')}
                         value={`${getCropLabel(farm.crop)} — ${t(`farms.stages.${farm.growthStage}` as Parameters<typeof t>[0])}`}
                       />
-                      <InfoCell icon="📐" label={t('farms.area')} value={`${farm.fieldAreaHa} ha`} />
+                      <InfoCell Icon={Ruler} label={t('farms.area')} value={`${farm.fieldAreaHa} ha`} />
                       <InfoCell
-                        icon="💧"
+                        Icon={Droplets}
                         label={t('farms.irrigationMethod')}
                         value={t(`farms.irrigationMethods.${farm.irrigationMethod}` as Parameters<typeof t>[0])}
                       />
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <div className="px-3 py-1 bg-gray-100 rounded-lg text-sm text-gray-600">
+                      <div className="px-3 py-1 bg-[#F7F8F5] rounded-lg text-sm text-[#687168]">
                         <span className="font-medium">{t('farms.soilType')}:</span>{' '}
                         {t(`farms.soilTypes.${farm.soilType}` as Parameters<typeof t>[0])}
                       </div>
@@ -154,19 +149,15 @@ export function FarmManagement({
 
                   <div className="flex flex-col gap-2 shrink-0">
                     {farm.id !== activeFarmId && (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => onSetActiveFarm(farm.id)}
-                      >
-                        {t('farms.setActive')}
+                      <Button variant="secondary" size="sm" onClick={() => onSetActiveFarm(farm.id)}>
+                        <Radio size={12} /> {t('farms.setActive')}
                       </Button>
                     )}
                     <Button variant="ghost" size="sm" onClick={() => handleEdit(farm)}>
-                      {t('common.edit')}
+                      <Pencil size={12} /> {t('common.edit')}
                     </Button>
                     <Button variant="danger" size="sm" onClick={() => setDeleteTarget(farm)}>
-                      {t('common.delete')}
+                      <Trash2 size={12} /> {t('common.delete')}
                     </Button>
                   </div>
                 </div>
@@ -193,24 +184,26 @@ export function FarmManagement({
         }
       >
         <div className="space-y-3">
-          <p className="text-gray-700">
+          <p className="text-[#202820]">
             {t('farms.confirmDelete')}{' '}
-            <strong className="font-semibold text-gray-900">{deleteTarget?.name}</strong>?
+            <strong className="font-semibold text-[#202820]">{deleteTarget?.name}</strong>?
           </p>
-          <p className="text-sm text-gray-500">{t('settings.resetConfirmBody')}</p>
+          <p className="text-sm text-[#687168]">{t('settings.resetConfirmBody')}</p>
         </div>
       </Dialog>
     </DashboardLayout>
   )
 }
 
-function InfoCell({ icon, label, value }: { icon: string; label: string; value: string }) {
+import type { LucideIcon } from 'lucide-react'
+
+function InfoCell({ Icon, label, value }: { Icon: LucideIcon; label: string; value: string }) {
   return (
-    <div className="space-y-1">
-      <p className="text-sm font-medium text-gray-500">{label}</p>
-      <p className="text-base font-medium text-gray-900 flex items-center gap-2">
-        <span>{icon}</span>
-        {value}
+    <div>
+      <p className="text-xs text-[#9AA49A] mb-0.5">{label}</p>
+      <p className="text-sm font-medium text-[#202820] flex items-center gap-1.5">
+        <Icon size={13} className="text-[#527A45] flex-shrink-0" />
+        <span className="truncate">{value}</span>
       </p>
     </div>
   )

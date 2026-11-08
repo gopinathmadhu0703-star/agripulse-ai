@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { DashboardLayout } from '../components/DashboardLayout'
 import type { AppSettings } from '../types'
 import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
@@ -35,7 +36,8 @@ export function SettingsPage({ settings, onSave, onResetAll }: SettingsPageProps
   }))
 
   return (
-    <div className="space-y-5 max-w-lg">
+    <DashboardLayout title={t('settings.title')}>
+      <div className="space-y-5 max-w-lg">
       {/* Display preferences */}
       <Card header={t('settings.display')}>
         <div className="space-y-4">
@@ -88,11 +90,11 @@ export function SettingsPage({ settings, onSave, onResetAll }: SettingsPageProps
                     },
                   })
                 }
-                className="mt-0.5 rounded border-stone-300 text-forest-600"
+                className="mt-0.5 rounded border-[#E0E5DD] text-[#527A45]"
               />
               <div>
-                <p className="text-sm font-medium text-stone-700 group-hover:text-stone-900">{label}</p>
-                <p className="text-xs text-stone-400">{desc}</p>
+                <p className="text-sm font-medium text-[#202820] group-hover:text-stone-900">{label}</p>
+                <p className="text-xs text-[#9AA49A]">{desc}</p>
               </div>
             </label>
           ))}
@@ -102,7 +104,7 @@ export function SettingsPage({ settings, onSave, onResetAll }: SettingsPageProps
       {/* Data management */}
       <Card header={t('settings.dataManagement')}>
         <div className="space-y-3">
-          <p className="text-sm text-stone-500">{t('settings.dataStoredLocally')}</p>
+          <p className="text-sm text-[#687168]">{t('settings.dataStoredLocally')}</p>
           <Button variant="danger" size="sm" onClick={() => setConfirmReset(true)}>
             {t('settings.resetAll')}
           </Button>
@@ -111,19 +113,19 @@ export function SettingsPage({ settings, onSave, onResetAll }: SettingsPageProps
 
       {/* About */}
       <Card header={t('settings.about')}>
-        <div className="text-sm text-stone-500 space-y-1.5">
+        <div className="text-sm text-[#687168] space-y-1.5">
           <p>
             {t('settings.aboutChallenge')}
           </p>
           <p>
             {t('settings.aboutWeather')}:{' '}
-            <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer" className="text-forest-600 hover:underline">
+            <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer" className="text-[#527A45] hover:underline">
               Open-Meteo
             </a>{' '}
             (free, no API key)
           </p>
           <p>{t('settings.aboutFormulas')}</p>
-          <p className="mt-3 text-xs border-t border-stone-100 pt-3">
+          <p className="mt-3 text-xs border-t border-[#E0E5DD] pt-3">
             <strong>Not Claimed:</strong> {t('settings.aboutDisclaimer')}
           </p>
         </div>
@@ -152,5 +154,6 @@ export function SettingsPage({ settings, onSave, onResetAll }: SettingsPageProps
         <p>{t('settings.resetConfirmBody')}</p>
       </Dialog>
     </div>
+    </DashboardLayout>
   )
 }

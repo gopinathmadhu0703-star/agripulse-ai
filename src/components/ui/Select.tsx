@@ -29,7 +29,7 @@ export function Select({
 
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={selectId} className="text-sm font-medium text-stone-700">
+      <label htmlFor={selectId} className="text-sm font-medium text-[#202820]">
         {label}
         {required && <span className="text-red-500 ml-0.5" aria-hidden>*</span>}
       </label>
@@ -38,10 +38,10 @@ export function Select({
         aria-describedby={error ? `${selectId}-error` : undefined}
         aria-invalid={!!error}
         className={[
-          'rounded-md border px-3 py-2 text-sm text-stone-800 bg-white',
-          'focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-forest-500',
-          'disabled:bg-stone-50 disabled:text-stone-400 disabled:cursor-not-allowed',
-          error ? 'border-red-400' : 'border-stone-300',
+          'rounded-md border px-3 py-2 text-sm text-[#202820] bg-white',
+          'focus:outline-none focus:ring-2 focus:ring-[#24452D] focus:border-[#24452D]',
+          'disabled:bg-[#F7F8F5] disabled:text-[#9AA49A] disabled:cursor-not-allowed',
+          error ? 'border-red-400' : 'border-[#E0E5DD]',
           className,
         ].join(' ')}
         {...props}
@@ -63,7 +63,7 @@ export function Select({
         </p>
       )}
       {!error && helperText && (
-        <p className="text-xs text-stone-500">{helperText}</p>
+        <p className="text-xs text-[#687168]">{helperText}</p>
       )}
     </div>
   )

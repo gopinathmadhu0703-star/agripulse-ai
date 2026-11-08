@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Loader2, AlertCircle } from 'lucide-react'
 
 export function AuthCallback() {
   const navigate = useNavigate()
@@ -9,47 +10,41 @@ export function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // The actual OAuth callback is handled in AuthProvider
-        // This component just shows loading and redirects
         await new Promise(resolve => setTimeout(resolve, 2000))
-        
-        // Redirect to dashboard
         navigate('/dashboard')
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Authentication failed')
         setIsLoading(false)
       }
     }
-
     handleAuthCallback()
   }, [navigate])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="text-center max-w-md p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
-        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-emerald-50 flex items-center justify-center">
-          <span className="text-3xl">🔐</span>
-        </div>
-        
+    <div className="min-h-screen flex items-center justify-center bg-[#F7F8F5]">
+      <div className="text-center max-w-sm p-8 bg-white rounded-lg shadow-card border border-[#E0E5DD]">
         {isLoading ? (
           <>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <div className="w-10 h-10 rounded-full bg-[#EAF0E6] flex items-center justify-center mx-auto mb-4">
+              <Loader2 size={18} className="text-[#527A45] animate-spin" />
+            </div>
+            <h3 className="text-sm font-semibold text-[#202820] mb-1">
               Authenticating with Google
             </h3>
-            <p className="text-gray-500 mb-6">
-              Please wait while we complete the authentication process...
+            <p className="text-xs text-[#9AA49A]">
+              Please wait while we complete the sign-in process…
             </p>
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
           </>
         ) : error ? (
           <>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Authentication Failed
-            </h3>
-            <p className="text-gray-500 mb-6">{error}</p>
+            <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+              <AlertCircle size={18} className="text-red-500" />
+            </div>
+            <h3 className="text-sm font-semibold text-[#202820] mb-1">Authentication Failed</h3>
+            <p className="text-xs text-[#9AA49A] mb-4">{error}</p>
             <button
               onClick={() => navigate('/')}
-              className="px-6 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+              className="px-4 py-2 bg-[#24452D] text-white text-sm font-medium rounded-md hover:bg-[#1c3622] transition-colors"
             >
               Return to Home
             </button>

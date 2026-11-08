@@ -30,28 +30,28 @@ export function Dialog({ open, title, onClose, children, actions }: DialogProps)
     >
       {/* Overlay */}
       <div
-        className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-[#202820]/40 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
       {/* Panel */}
-      <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6 z-10">
-        <div className="flex items-start justify-between mb-4">
-          <h2 id="dialog-title" className="text-base font-semibold text-stone-800">
+      <div className="relative bg-white rounded-lg shadow-panel max-w-md w-full p-6 z-10">
+        <div className="flex items-start justify-between mb-4 gap-4">
+          <h2 id="dialog-title" className="text-base font-semibold text-[#202820]">
             {title}
           </h2>
           <button
             onClick={onClose}
             aria-label="Close dialog"
-            className="text-stone-400 hover:text-stone-600 transition-colors ml-4"
+            className="text-[#9AA49A] hover:text-[#202820] transition-colors"
           >
-            ✕
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
           </button>
         </div>
-        <div className="text-sm text-stone-600 mb-5">{children}</div>
-        {actions && (
-          <div className="flex justify-end gap-2">{actions}</div>
-        )}
+        <div className="text-sm text-[#687168] mb-5">{children}</div>
+        {actions && <div className="flex justify-end gap-2">{actions}</div>}
       </div>
     </div>
   )

@@ -1,106 +1,141 @@
 import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import {
+  LayoutDashboard,
+  Sprout,
+  CloudSun,
+  Droplets,
+  CalendarDays,
+  BarChart2,
+  Users,
+  Settings,
+  HelpCircle,
+  LogIn,
+  LogOut,
+  ChevronRight,
+} from 'lucide-react'
 import { useAuth } from './auth/AuthProvider'
+
+const navItems = [
+  { path: '/dashboard', labelKey: 'nav.dashboard', Icon: LayoutDashboard },
+  { path: '/farms',     labelKey: 'nav.farms',     Icon: Sprout },
+  { path: '/weather',   labelKey: 'nav.weather',   Icon: CloudSun },
+  { path: '/advisor',   labelKey: 'nav.advisor',   Icon: Droplets },
+  { path: '/planner',   labelKey: 'nav.planner',   Icon: CalendarDays },
+  { path: '/history',   labelKey: 'nav.history',   Icon: BarChart2 },
+  { path: '/community', labelKey: 'nav.community', Icon: Users },
+]
+
+const bottomItems = [
+  { path: '/settings', labelKey: 'nav.settings', Icon: Settings },
+  { path: '/help',     labelKey: 'nav.help',     Icon: HelpCircle },
+]
 
 export function Sidebar() {
   const { t } = useTranslation()
   const { user, showSignInModal, signOut } = useAuth()
 
-  const navItems = [
-    { path: '/dashboard', labelKey: 'nav.dashboard', icon: '📊' },
-    { path: '/farms', labelKey: 'nav.farms', icon: '🏠' },
-    { path: '/weather', labelKey: 'nav.weather', icon: '🌤️' },
-    { path: '/advisor', labelKey: 'nav.advisor', icon: '💧' },
-    { path: '/planner', labelKey: 'nav.planner', icon: '📅' },
-    { path: '/history', labelKey: 'nav.history', icon: '📈' },
-    { path: '/community', labelKey: 'nav.community', icon: '🌾' },
-    { path: '/settings', labelKey: 'nav.settings', icon: '⚙️' },
-    { path: '/help', labelKey: 'nav.help', icon: '❓' },
-  ]
-
   return (
-    <aside className="w-60 border-r border-gray-200 bg-white flex flex-col">
-      {/* Logo */}
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center">
-            <span className="text-white text-lg">🌱</span>
-          </div>
-          <span className="text-lg font-semibold text-emerald-700">AgriPulse AI</span>
+    <aside className="w-56 flex-shrink-0 border-r border-[#E0E5DD] bg-white flex flex-col">
+      {/* Brand */}
+      <div className="h-14 flex items-center gap-2.5 px-5 border-b border-[#E0E5DD]">
+        <div className="w-6 h-6 rounded bg-[#24452D] flex items-center justify-center flex-shrink-0">
+          <Sprout size={14} className="text-white" />
         </div>
+        <span className="text-sm font-semibold text-[#24452D] tracking-tight">AgriPulse AI</span>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4 overflow-y-auto">
-        <ul className="space-y-1">
-          {navItems.map((item) => (
-            <li key={item.path}>
+      {/* Main nav */}
+      <nav className="flex-1 py-3 overflow-y-auto">
+        <ul className="space-y-0.5 px-2">
+          {navItems.map(({ path, labelKey, Icon }) => (
+            <li key={path}>
               <NavLink
-                to={item.path}
+                to={path}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                  [
+                    'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors',
                     isActive
-                      ? 'bg-emerald-50 text-emerald-700 border-l-4 border-emerald-600'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`
+                      ? 'bg-[#EAF0E6] text-[#24452D]'
+                      : 'text-[#687168] hover:bg-[#F7F8F5] hover:text-[#202820]',
+                  ].join(' ')
                 }
               >
-                <span className="text-lg">{item.icon}</span>
-                <span>{t(item.labelKey as Parameters<typeof t>[0])}</span>
+                {({ isActive }) => (
+                  <>
+                    <Icon size={15} className={isActive ? 'text-[#24452D]' : 'text-[#9AA49A]'} />
+                    <span className="truncate">{t(labelKey as Parameters<typeof t>[0])}</span>
+                  </>
+                )}
               </NavLink>
             </li>
           ))}
         </ul>
+
+        <div className="mt-3 pt-3 border-t border-[#E0E5DD] px-2">
+          <ul className="space-y-0.5">
+            {bottomItems.map(({ path, labelKey, Icon }) => (
+              <li key={path}>
+                <NavLink
+                  to={path}
+                  className={({ isActive }) =>
+                    [
+                      'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-[#EAF0E6] text-[#24452D]'
+                        : 'text-[#687168] hover:bg-[#F7F8F5] hover:text-[#202820]',
+                    ].join(' ')
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <Icon size={15} className={isActive ? 'text-[#24452D]' : 'text-[#9AA49A]'} />
+                      <span className="truncate">{t(labelKey as Parameters<typeof t>[0])}</span>
+                    </>
+                  )}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </div>
       </nav>
 
-      {/* User Profile */}
-      <div className="p-4 border-t border-gray-200">
+      {/* User section */}
+      <div className="border-t border-[#E0E5DD] p-3">
         {user ? (
-          <>
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center overflow-hidden">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2.5 px-2 py-1.5">
+              <div className="w-7 h-7 rounded-full bg-[#EAF0E6] flex items-center justify-center overflow-hidden flex-shrink-0">
                 {user.picture ? (
                   <img src={user.picture} alt={user.name} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-emerald-700 font-medium text-sm">
+                  <span className="text-[#24452D] text-xs font-semibold">
                     {user.name.charAt(0).toUpperCase()}
                   </span>
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
-                <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                <p className="text-xs font-medium text-[#202820] truncate">{user.name}</p>
+                <p className="text-2xs text-[#9AA49A] truncate">{user.email}</p>
               </div>
             </div>
-
             <button
               onClick={signOut}
-              className="w-full flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+              className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-[#687168] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
             >
-              <span className="text-base">🚪</span>
+              <LogOut size={13} />
               <span>{t('nav.signOut')}</span>
             </button>
-          </>
+          </div>
         ) : (
-          <>
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-600 text-sm">👤</span>
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">{t('nav.notSignedIn')}</p>
-                <p className="text-xs text-gray-500">{t('nav.signInToSave')}</p>
-              </div>
-            </div>
-
-            <button
-              onClick={showSignInModal}
-              className="w-full flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors"
-            >
-              <span className="text-base">🔑</span>
-              <span>{t('nav.signIn')}</span>
-            </button>
-          </>
+          <button
+            onClick={showSignInModal}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-[#24452D] hover:bg-[#1c3622] rounded-md transition-colors"
+          >
+            <LogIn size={14} />
+            <span>{t('nav.signIn')}</span>
+            <ChevronRight size={13} className="ml-auto opacity-60" />
+          </button>
         )}
       </div>
     </aside>

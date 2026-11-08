@@ -1,67 +1,41 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Search, Globe } from 'lucide-react'
 import { useAuth } from './auth/AuthProvider'
 import { SUPPORTED_LANGUAGES } from '../i18n/config'
 import type { SupportedLanguage } from '../i18n/config'
 
 export function Topbar() {
   const { t, i18n } = useTranslation()
-  const [notifications] = useState(3)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
-  const currentDate = new Date().toISOString().split('T')[0]
-
   const { user, showSignInModal, signOut } = useAuth()
-
-  const handleUserClick = () => {
-    if (user) {
-      setIsUserMenuOpen(!isUserMenuOpen)
-    } else {
-      showSignInModal()
-    }
-  }
 
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     i18n.changeLanguage(e.target.value as SupportedLanguage)
   }
 
   return (
-    <header className="border-b border-gray-200 bg-white px-6 py-4">
-      <div className="flex items-center justify-between">
-        {/* Search */}
-        <div className="flex-1 max-w-xl">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder={t('topbar.searchPlaceholder')}
-              className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-            />
-            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              🔍
-            </span>
-          </div>
-        </div>
+    <header className="h-14 border-b border-[#E0E5DD] bg-white px-5 flex items-center justify-between gap-4 flex-shrink-0">
+      {/* Search */}
+      <div className="relative max-w-xs w-full">
+        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA49A] pointer-events-none" />
+        <input
+          type="text"
+          placeholder={t('topbar.searchPlaceholder')}
+          className="w-full pl-8 pr-3 py-1.5 text-sm bg-[#F7F8F5] border border-[#E0E5DD] rounded-md text-[#202820] placeholder:text-[#9AA49A] focus:outline-none focus:ring-2 focus:ring-[#24452D] focus:border-[#24452D] transition-colors"
+        />
+      </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-4">
-          {/* Notifications */}
-          <button
-            className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-            aria-label="Notifications"
-          >
-            <span className="text-xl">🔔</span>
-            {notifications > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                {notifications}
-              </span>
-            )}
-          </button>
-
-          {/* Language selector */}
+      {/* Right actions */}
+      <div className="flex items-center gap-2">
+        {/* Language selector */}
+        <div className="flex items-center gap-1.5 border border-[#E0E5DD] rounded-md px-2.5 py-1.5 bg-white">
+          <Globe size={13} className="text-[#9AA49A]" />
           <select
             value={i18n.language}
             onChange={handleLanguageChange}
             aria-label={t('topbar.language')}
-            className="text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+            className="text-xs text-[#687168] bg-transparent focus:outline-none cursor-pointer"
           >
             {SUPPORTED_LANGUAGES.map((lang) => (
               <option key={lang.code} value={lang.code}>
@@ -69,72 +43,42 @@ export function Topbar() {
               </option>
             ))}
           </select>
+        </div>
 
-          {/* Date Picker */}
-          <input
-            type="date"
-            defaultValue={currentDate}
-            className="text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-          />
-
-          {/* Export CSV */}
-          <button className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-gray-50 text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
-            <span>📥</span>
-            {t('common.exportCsv')}
+        {/* User */}
+        <div className="relative">
+          <button
+            onClick={() => user ? setIsUserMenuOpen(!isUserMenuOpen) : showSignInModal()}
+            className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 text-sm rounded-md hover:bg-[#F7F8F5] transition-colors"
+          >
+            <div className="w-6 h-6 rounded-full bg-[#EAF0E6] flex items-center justify-center overflow-hidden flex-shrink-0">
+              {user?.picture ? (
+                <img src={user.picture} alt={user.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-[#24452D] text-xs font-semibold">
+                  {user ? user.name.charAt(0).toUpperCase() : '?'}
+                </span>
+              )}
+            </div>
+            <span className="text-sm text-[#202820] font-medium hidden sm:inline max-w-[120px] truncate">
+              {user ? user.name.split(' ')[0] : t('nav.signIn')}
+            </span>
           </button>
 
-          {/* User Avatar */}
-          <div className="relative">
-            <button
-              onClick={handleUserClick}
-              className="flex items-center gap-3 p-1 hover:bg-gray-50 rounded-lg transition-colors"
-            >
-              {user ? (
-                <>
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center overflow-hidden">
-                    {user.picture ? (
-                      <img src={user.picture} alt={user.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-emerald-700 font-medium">
-                        {user.name.charAt(0).toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-sm font-medium text-gray-700 hidden md:inline">
-                    {user.name.split(' ')[0]}
-                  </span>
-                  <span className="text-gray-400">▼</span>
-                </>
-              ) : (
-                <>
-                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-gray-600">👤</span>
-                  </div>
-                  <span className="text-sm font-medium text-gray-700 hidden md:inline">
-                    {t('nav.signIn')}
-                  </span>
-                </>
-              )}
-            </button>
-
-            {/* User Dropdown */}
-            {isUserMenuOpen && user && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="font-medium text-gray-900 truncate">{user.name}</p>
-                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                </div>
-                <div className="border-t border-gray-100 pt-1">
-                  <button
-                    onClick={() => { signOut(); setIsUserMenuOpen(false) }}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                  >
-                    {t('nav.signOut')}
-                  </button>
-                </div>
+          {isUserMenuOpen && user && (
+            <div className="absolute right-0 mt-1 w-48 bg-white border border-[#E0E5DD] rounded-lg shadow-panel py-1 z-50">
+              <div className="px-3 py-2 border-b border-[#E0E5DD]">
+                <p className="text-sm font-medium text-[#202820] truncate">{user.name}</p>
+                <p className="text-xs text-[#9AA49A] truncate">{user.email}</p>
               </div>
-            )}
-          </div>
+              <button
+                onClick={() => { signOut(); setIsUserMenuOpen(false) }}
+                className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+              >
+                {t('nav.signOut')}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

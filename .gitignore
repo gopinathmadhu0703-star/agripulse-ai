@@ -3,3 +3,6 @@ dist/
 .env
 .env.*
 !.env.example
+
+# Local env (contains secrets)
+.env.local

@@ -5,11 +5,63 @@
 @layer base {
   html {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background-color: #f8f9f4;
-    color: #1c1917;
+    background-color: #F7F8F5;
+    color: #202820;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   * {
     box-sizing: border-box;
+  }
+
+  /* Consistent focus ring */
+  :focus-visible {
+    outline: 2px solid #24452D;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Remove focus ring for mouse users */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+@layer components {
+  /* ── Design system utility classes ─────────────────────────── */
+
+  /* Page container */
+  .ap-page {
+    @apply min-h-screen bg-[#F7F8F5];
+  }
+
+  /* Section heading */
+  .ap-heading {
+    @apply text-sm font-semibold text-[#687168] uppercase tracking-wider;
+  }
+
+  /* Divider */
+  .ap-divider {
+    @apply border-t border-[#E0E5DD];
+  }
+
+  /* Data label */
+  .ap-label {
+    @apply text-xs text-[#687168] font-medium;
+  }
+
+  /* Data value */
+  .ap-value {
+    @apply text-sm font-semibold text-[#202820];
+  }
+
+  /* Compact table cell */
+  .ap-td {
+    @apply px-4 py-2.5 text-sm text-[#202820];
+  }
+
+  .ap-th {
+    @apply px-4 py-2 text-xs font-semibold text-[#687168] uppercase tracking-wider text-left;
   }
 }

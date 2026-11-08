@@ -1,6 +1,6 @@
 import React from 'react'
 
-type BadgeVariant = 'success' | 'warning' | 'danger' | 'info' | 'neutral'
+type BadgeVariant = 'success' | 'warning' | 'danger' | 'info' | 'neutral' | 'primary'
 type BadgeSize = 'sm' | 'md'
 
 interface BadgeProps {
@@ -8,36 +8,45 @@ interface BadgeProps {
   size?: BadgeSize
   children: React.ReactNode
   className?: string
+  dot?: boolean
 }
 
 const variantClasses: Record<BadgeVariant, string> = {
-  success: 'bg-green-100 text-green-800 ring-green-200',
-  warning: 'bg-amber-100 text-amber-800 ring-amber-200',
-  danger:  'bg-red-100 text-red-800 ring-red-200',
-  info:    'bg-blue-100 text-blue-800 ring-blue-200',
-  neutral: 'bg-stone-100 text-stone-700 ring-stone-200',
+  primary: 'bg-[#EAF0E6] text-[#24452D] ring-[#D0DCC9]',
+  success: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+  warning: 'bg-amber-50 text-amber-700 ring-amber-200',
+  danger:  'bg-red-50 text-red-700 ring-red-200',
+  info:    'bg-blue-50 text-blue-700 ring-blue-200',
+  neutral: 'bg-[#F7F8F5] text-[#687168] ring-[#E0E5DD]',
+}
+
+const dotColors: Record<BadgeVariant, string> = {
+  primary: 'bg-[#24452D]',
+  success: 'bg-emerald-500',
+  warning: 'bg-amber-500',
+  danger:  'bg-red-500',
+  info:    'bg-blue-500',
+  neutral: 'bg-[#9AA49A]',
 }
 
 const sizeClasses: Record<BadgeSize, string> = {
   sm: 'px-2 py-0.5 text-xs',
-  md: 'px-2.5 py-1 text-sm',
+  md: 'px-2.5 py-1 text-xs',
 }
 
-export function Badge({
-  variant = 'neutral',
-  size = 'sm',
-  children,
-  className = '',
-}: BadgeProps) {
+export function Badge({ variant = 'neutral', size = 'sm', children, className = '', dot }: BadgeProps) {
   return (
     <span
       className={[
-        'inline-flex items-center gap-1 rounded-full font-medium ring-1',
+        'inline-flex items-center gap-1 rounded font-medium ring-1',
         variantClasses[variant],
         sizeClasses[size],
         className,
       ].join(' ')}
     >
+      {dot && (
+        <span className={['w-1.5 h-1.5 rounded-full shrink-0', dotColors[variant]].join(' ')} />
+      )}
       {children}
     </span>
   )
