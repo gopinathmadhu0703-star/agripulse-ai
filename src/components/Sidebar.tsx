@@ -13,6 +13,7 @@ import {
   LogIn,
   LogOut,
   ChevronRight,
+  X,
 } from 'lucide-react'
 import { useAuth } from './auth/AuthProvider'
 
@@ -31,18 +32,33 @@ const bottomItems = [
   { path: '/help',     labelKey: 'nav.help',     Icon: HelpCircle },
 ]
 
-export function Sidebar() {
+interface SidebarProps {
+  mobileOpen?: boolean
+  onMobileClose?: () => void
+}
+
+export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const { t } = useTranslation()
   const { user, showSignInModal, signOut } = useAuth()
 
-  return (
-    <aside className="w-56 flex-shrink-0 border-r border-[#E0E5DD] bg-white flex flex-col">
+  const inner = (
+    <aside className="w-56 h-full flex-shrink-0 border-r border-[#E0E5DD] bg-white flex flex-col">
       {/* Brand */}
       <div className="h-14 flex items-center gap-2.5 px-5 border-b border-[#E0E5DD]">
         <div className="w-6 h-6 rounded bg-[#24452D] flex items-center justify-center flex-shrink-0">
           <Sprout size={14} className="text-white" />
         </div>
         <span className="text-sm font-semibold text-[#24452D] tracking-tight">AgriPulse AI</span>
+        {/* Close button on mobile */}
+        {onMobileClose && (
+          <button
+            onClick={onMobileClose}
+            className="ml-auto p-1 text-[#9AA49A] hover:text-[#202820] lg:hidden"
+            aria-label="Close menu"
+          >
+            <X size={18} />
+          </button>
+        )}
       </div>
 
       {/* Main nav */}
@@ -52,9 +68,10 @@ export function Sidebar() {
             <li key={path}>
               <NavLink
                 to={path}
+                onClick={onMobileClose}
                 className={({ isActive }) =>
                   [
-                    'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                    'flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-medium transition-colors',
                     isActive
                       ? 'bg-[#EAF0E6] text-[#24452D]'
                       : 'text-[#687168] hover:bg-[#F7F8F5] hover:text-[#202820]',
@@ -63,7 +80,7 @@ export function Sidebar() {
               >
                 {({ isActive }) => (
                   <>
-                    <Icon size={15} className={isActive ? 'text-[#24452D]' : 'text-[#9AA49A]'} />
+                    <Icon size={16} className={isActive ? 'text-[#24452D]' : 'text-[#9AA49A]'} />
                     <span className="truncate">{t(labelKey as Parameters<typeof t>[0])}</span>
                   </>
                 )}
@@ -78,9 +95,10 @@ export function Sidebar() {
               <li key={path}>
                 <NavLink
                   to={path}
+                  onClick={onMobileClose}
                   className={({ isActive }) =>
                     [
-                      'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                      'flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm font-medium transition-colors',
                       isActive
                         ? 'bg-[#EAF0E6] text-[#24452D]'
                         : 'text-[#687168] hover:bg-[#F7F8F5] hover:text-[#202820]',
@@ -89,7 +107,7 @@ export function Sidebar() {
                 >
                   {({ isActive }) => (
                     <>
-                      <Icon size={15} className={isActive ? 'text-[#24452D]' : 'text-[#9AA49A]'} />
+                      <Icon size={16} className={isActive ? 'text-[#24452D]' : 'text-[#9AA49A]'} />
                       <span className="truncate">{t(labelKey as Parameters<typeof t>[0])}</span>
                     </>
                   )}
@@ -120,8 +138,8 @@ export function Sidebar() {
               </div>
             </div>
             <button
-              onClick={signOut}
-              className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-[#687168] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+              onClick={() => { signOut(); onMobileClose?.() }}
+              className="w-full flex items-center gap-2 px-2 py-2 text-xs text-[#687168] hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
             >
               <LogOut size={13} />
               <span>{t('nav.signOut')}</span>
@@ -129,8 +147,8 @@ export function Sidebar() {
           </div>
         ) : (
           <button
-            onClick={showSignInModal}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-[#24452D] hover:bg-[#1c3622] rounded-md transition-colors"
+            onClick={() => { showSignInModal(); onMobileClose?.() }}
+            className="w-full flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-white bg-[#24452D] hover:bg-[#1c3622] rounded-md transition-colors"
           >
             <LogIn size={14} />
             <span>{t('nav.signIn')}</span>
@@ -139,5 +157,30 @@ export function Sidebar() {
         )}
       </div>
     </aside>
+  )
+
+  return (
+    <>
+      {/* Desktop sidebar — always visible on lg+ */}
+      <div className="hidden lg:flex h-screen sticky top-0">
+        {inner}
+      </div>
+
+      {/* Mobile drawer — slides in as overlay */}
+      {mobileOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+            onClick={onMobileClose}
+            aria-hidden="true"
+          />
+          {/* Drawer */}
+          <div className="fixed inset-y-0 left-0 z-50 flex lg:hidden">
+            {inner}
+          </div>
+        </>
+      )}
+    </>
   )
 }
