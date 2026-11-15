@@ -17,8 +17,6 @@ import type {
 import {
   computeETc,
   computeEffectiveRain,
-  computeSoilBuffer,
-  computeNetDemand,
   computeIrrigationVolumeLiters,
   computeCurrentDepletionMm,
   computeReadilyAvailableWaterMm,
@@ -248,10 +246,10 @@ export function generateRecommendation(
     effectiveRain,
     soilBuffer,
     netDemand,
-    applicationEfficiency,
     formulaTrace,
     assumptions,
-    warnings
+    warnings,
+    applicationEfficiency
   )
 }
 
@@ -265,10 +263,10 @@ function buildResult(
   effectiveRainMm: number,
   soilBufferMm: number,
   netDemandMm: number,
-  applicationEfficiency = 1,
   formulaTrace: FormulaStep[],
   assumptions: string[],
-  warnings: string[]
+  warnings: string[],
+  applicationEfficiency = 1
 ): RecommendationResult {
   return {
     action,
