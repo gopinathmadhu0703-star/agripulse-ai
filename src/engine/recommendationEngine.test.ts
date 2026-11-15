@@ -30,7 +30,7 @@ const dryForecast: WeatherForecast = {
     precipProbabilityMax: 5,
     tempMaxC: 32,
     tempMinC: 22,
-    windSpeedAvgKmh: 10,
+    windSpeedMaxKmh: 10,
     dominantWeatherCode: 0,
   })),
   fetchedAt: '2026-10-01T06:00:00.000Z',
@@ -46,7 +46,7 @@ const rainyForecast: WeatherForecast = {
     precipProbabilityMax: 90,
     tempMaxC: 25,
     tempMinC: 18,
-    windSpeedAvgKmh: 8,
+    windSpeedMaxKmh: 8,
     dominantWeatherCode: 61,
   })),
 }
