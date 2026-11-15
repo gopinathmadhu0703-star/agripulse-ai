@@ -55,7 +55,7 @@ export function generateRecommendation(
     'ET₀ is from Open-Meteo FAO-56 Penman-Monteith model — reflects reference grass surface.',
     'Soil moisture input is a manual volumetric estimate, NOT a sensor reading.',
     'Application efficiency is an indicative method-level assumption; field performance must be measured locally.',
-    'Sugarcane allowable depletion p=0.65 is a scheduling assumption; other crops use generic p=0.50 pending local calibration.',
+    'Sugarcane allowable depletion p=0.60 is a scheduling assumption; other crops use generic p=0.50 pending local calibration.',
     'This recommendation is an estimate and does not substitute for professional agronomic advice.',
   ]
 
@@ -130,6 +130,10 @@ export function generateRecommendation(
   const irrigationVolume = computeIrrigationVolumeLiters(netDemand, fieldAreaHa, applicationEfficiency)
 
   // ── Additional warnings ───────────────────────────────────────────────────
+
+  if (soilMoistureVwcPct <= getSoilConstants(soilType).pwp * 100) {
+    warnings.push(`Entered VWC% (${soilMoistureVwcPct}%) is at or below the assumed permanent wilting point for ${soilType} soil (${(getSoilConstants(soilType).pwp * 100).toFixed(0)}%). Verify the soil texture and moisture reading; the crop may already be under severe water stress.`)
+  }
 
   if (soilMoistureVwcPct > getSoilConstants(soilType).fc * 100) {
     warnings.push(
@@ -212,7 +216,7 @@ export function generateRecommendation(
     {
       label: 'Readily Available Water (RAW)',
       formulaStr: 'RAW = p × TAW',
-      substitution: `= ${crop === 'sugarcane' ? 0.65 : 0.50} × ${taw.toFixed(2)} mm`,
+      substitution: `= ${crop === 'sugarcane' ? 0.60 : 0.50} × ${taw.toFixed(2)} mm`,
       result: soilBuffer,
       unit: 'mm',
     },
