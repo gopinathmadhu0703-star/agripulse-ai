@@ -44,7 +44,7 @@ export function WeatherCard({ day, unit, isToday }: WeatherCardProps) {
       <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E0E5DD]">
         <Metric label="Rain" value={formatMm(day.precipitationMm)} />
         <Metric label="ET₀" value={formatMm(day.et0Mm)} />
-        <Metric label="Wind" value={`${day.windSpeedAvgKmh} km/h`} />
+        <Metric label="Wind" value={`${day.windSpeedMaxKmh} km/h`} />
         <Metric label="Rain%" value={`${day.precipProbabilityMax}%`} />
       </div>
     </div>
