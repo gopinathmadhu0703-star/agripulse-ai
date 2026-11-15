@@ -99,18 +99,18 @@ describe('computeSoilBuffer', () => {
 
 describe('FAO-style depletion scheduling', () => {
   it('calculates sugarcane initial-stage RAW with a 300 mm root zone', () => {
-    // Clay TAW = (0.36 - 0.18) × 300 = 54 mm; p = 0.65; RAW = 35.1 mm
-    expect(computeReadilyAvailableWaterMm('clay', 'sugarcane', 'initial')).toBe(35.1)
+    // Clay TAW = (0.36 - 0.18) × 300 = 54 mm; p = 0.60; RAW = 32.4 mm
+    expect(computeReadilyAvailableWaterMm('clay', 'sugarcane', 'initial')).toBe(32.4)
   })
   it('calculates current depletion at field-capacity minus VWC', () => {
     expect(computeCurrentDepletionMm(18, 'clay', 'sugarcane', 'initial')).toBe(54)
   })
   it('only recommends net water above the allowable depletion trigger', () => {
-    expect(computeTriggeredNetDemandMm(54, 2.32, 0, 35.1)).toBe(21.22)
+    expect(computeTriggeredNetDemandMm(54, 2.32, 0, 32.4)).toBe(23.92)
   })
   it('converts net depth to gross flood volume using 60% efficiency', () => {
     expect(getApplicationEfficiency('flood')).toBe(0.6)
-    expect(computeIrrigationVolumeLiters(21.22, 25, 0.6)).toBe(8841667)
+    expect(computeIrrigationVolumeLiters(23.92, 25, 0.6)).toBe(9966667)
   })
 })
 
