@@ -241,6 +241,7 @@ export async function fetchWeatherForecast(
   }
 
   if (
+    !data ||
     !Number.isFinite(data.latitude) ||
     !Number.isFinite(data.longitude) ||
     typeof data.timezone !== 'string' ||
