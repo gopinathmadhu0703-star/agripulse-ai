@@ -49,9 +49,9 @@ export function AuthCallback() {
         subscription.unsubscribe()
       }
     } else {
-      // Supabase not configured — demo mode only, no real OAuth
+      // OAuth requires a configured Supabase connection.
       setStatus('error')
-      setMessage('Supabase is not configured. Use a demo account to sign in.')
+      setMessage('Supabase is not configured. Please contact the app administrator.')
     }
   }, [navigate])
 
