@@ -122,6 +122,10 @@ interface WeatherApiResponse {
  * as a full 24-hour day when a request is made after midnight.
  */
 function mapDailyWeather(data: WeatherApiResponse['daily']): DailyWeather[] {
+  if (!data || !Array.isArray(data.time)) {
+    throw new WeatherAPIError('Weather API returned an invalid daily forecast structure.')
+  }
+
   const fields = [
     data.et0_fao_evapotranspiration,
     data.precipitation_sum,
@@ -133,7 +137,7 @@ function mapDailyWeather(data: WeatherApiResponse['daily']): DailyWeather[] {
   ]
   const expectedLength = data.time.length
 
-  if (expectedLength === 0 || fields.some((values) => values.length !== expectedLength)) {
+  if (expectedLength === 0 || fields.some((values) => !Array.isArray(values) || values.length !== expectedLength)) {
     throw new WeatherAPIError('Weather API returned incomplete daily forecast data.')
   }
 
@@ -154,6 +158,11 @@ function mapDailyWeather(data: WeatherApiResponse['daily']): DailyWeather[] {
     ] = values
 
     if (
+      typeof date !== 'string' ||
+      date.length !== 10 ||
+      tempMaxC < tempMinC ||
+      weatherCode < 0 ||
+      weatherCode > 99 ||
       et0Mm < 0 ||
       precipitationMm < 0 ||
       precipProbabilityMax < 0 ||
