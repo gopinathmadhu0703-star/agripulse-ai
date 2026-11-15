@@ -89,6 +89,58 @@ describe('generateRecommendation', () => {
     })
   })
 
+  describe('invalid and incomplete inputs', () => {
+    it('returns collect-reading for non-finite soil moisture', () => {
+      const input: IrrigationInput = {
+        farm: mockFarm,
+        soilMoistureVwcPct: Number.NaN,
+        soilReadingAgeHours: 2,
+        horizonDays: 2,
+      }
+      const result = generateRecommendation(input, dryForecast)
+      expect(result.action).toBe('collect-reading')
+      expect(result.warnings.join(' ')).toContain('outside valid range')
+    })
+
+    it('returns collect-reading for negative or non-finite reading age', () => {
+      for (const age of [-1, Number.NaN, Number.POSITIVE_INFINITY]) {
+        const result = generateRecommendation({
+          farm: mockFarm,
+          soilMoistureVwcPct: 15,
+          soilReadingAgeHours: age,
+          horizonDays: 2,
+        }, dryForecast)
+        expect(result.action).toBe('collect-reading')
+      }
+    })
+
+    it('does not calculate from fewer forecast days than requested', () => {
+      const result = generateRecommendation({
+        farm: mockFarm,
+        soilMoistureVwcPct: 15,
+        soilReadingAgeHours: 2,
+        horizonDays: 3,
+      }, { ...dryForecast, daily: dryForecast.daily.slice(0, 2) })
+      expect(result.action).toBe('collect-reading')
+      expect(result.warnings.join(' ')).toContain('Incomplete forecast')
+    })
+
+    it('does not calculate from negative or non-finite weather values', () => {
+      const invalidForecast = {
+        ...dryForecast,
+        daily: dryForecast.daily.map((day, index) => index === 0 ? { ...day, et0Mm: Number.NaN } : day),
+      }
+      const result = generateRecommendation({
+        farm: mockFarm,
+        soilMoistureVwcPct: 15,
+        soilReadingAgeHours: 2,
+        horizonDays: 2,
+      }, invalidForecast)
+      expect(result.action).toBe('collect-reading')
+      expect(result.warnings.join(' ')).toContain('invalid ET₀/rainfall')
+    })
+  })
+
   describe('irrigate action', () => {
     it('returns irrigate when demand is positive and soil is low', () => {
       // Dry forecast, low soil moisture (12% VWC < PWP for loamy is 10% so buffer = 12mm)
