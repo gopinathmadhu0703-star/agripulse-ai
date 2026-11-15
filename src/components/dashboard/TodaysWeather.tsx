@@ -88,7 +88,7 @@ export function TodaysWeather() {
             {[
               { label: 'Rainfall', value: formatMm(today.precipitationMm) },
               { label: 'ET₀', value: formatMm(today.et0Mm) },
-              { label: 'Wind', value: `${today.windSpeedAvgKmh} km/h` },
+              { label: 'Max wind', value: `${today.windSpeedMaxKmh} km/h` },
               { label: 'Rain chance', value: `${today.precipProbabilityMax}%` },
             ].map(({ label, value }) => (
               <div key={label} className="bg-[#F7F8F5] rounded-md px-3 py-2">

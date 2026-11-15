@@ -63,8 +63,13 @@ export function generateRecommendation(
   }
 
   // Validate VWC% range
-  if (soilMoistureVwcPct < 0 || soilMoistureVwcPct > 100) {
+  if (!Number.isFinite(soilMoistureVwcPct) || soilMoistureVwcPct < 0 || soilMoistureVwcPct > 100) {
     warnings.push(`VWC% (${soilMoistureVwcPct}%) is outside valid range (0–100%). Cannot compute soil buffer.`)
+    return buildResult('collect-reading', input, forecast, 0, 0, 0, 0, 0, 0, [], assumptions, warnings)
+  }
+
+  if (soilReadingAgeHours !== undefined && (!Number.isFinite(soilReadingAgeHours) || soilReadingAgeHours < 0)) {
+    warnings.push('Soil moisture reading age must be a valid non-negative number of hours.')
     return buildResult('collect-reading', input, forecast, 0, 0, 0, 0, 0, 0, [], assumptions, warnings)
   }
 
@@ -82,8 +87,19 @@ export function generateRecommendation(
 
   const horizonDaily = forecast.daily.slice(0, horizonDays)
 
-  if (horizonDaily.length === 0) {
-    warnings.push('No forecast data available for selected horizon.')
+  if (horizonDaily.length !== horizonDays) {
+    warnings.push(`Incomplete forecast: expected ${horizonDays} days but received ${horizonDaily.length}. Cannot make a reliable recommendation.`)
+    return buildResult('collect-reading', input, forecast, 0, 0, 0, 0, 0, 0, [], assumptions, warnings)
+  }
+
+  const hasInvalidForecastValue = horizonDaily.some((day) =>
+    !Number.isFinite(day.et0Mm) ||
+    day.et0Mm < 0 ||
+    !Number.isFinite(day.precipitationMm) ||
+    day.precipitationMm < 0
+  )
+  if (hasInvalidForecastValue) {
+    warnings.push('Forecast contains missing or invalid ET₀/rainfall values. Cannot make a reliable recommendation.')
     return buildResult('collect-reading', input, forecast, 0, 0, 0, 0, 0, 0, [], assumptions, warnings)
   }
 

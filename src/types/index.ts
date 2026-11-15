@@ -29,13 +29,13 @@ export interface HourlyWeather {
 
 export interface DailyWeather {
   date: string                     // YYYY-MM-DD
-  et0Mm: number                    // mm/day  — sum of hourly
-  precipitationMm: number          // mm/day  — sum of hourly
-  precipProbabilityMax: number     // %       — max of hourly
+  et0Mm: number                    // mm/day  — Open-Meteo daily sum
+  precipitationMm: number          // mm/day  — Open-Meteo daily sum
+  precipProbabilityMax: number     // %       — Open-Meteo daily maximum
   tempMaxC: number                 // °C
   tempMinC: number                 // °C
-  windSpeedAvgKmh: number          // km/h    — average of hourly
-  dominantWeatherCode: number      // WMO code — most common in day
+  windSpeedMaxKmh: number          // km/h    — Open-Meteo daily maximum
+  dominantWeatherCode: number      // WMO code — most severe condition of the day
 }
 
 export interface WeatherForecast {
