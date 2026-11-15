@@ -43,7 +43,7 @@ export async function syncAllFromDb() {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [authState, setAuthState]         = useState<AuthState>(getAuthState())
+  const [authState, setAuthState]         = useState<AuthState>(() => ({ ...getAuthState(), isLoading: true }))
   const [isSignInModalOpen, setModal]     = useState(false)
 
   // ── Initialise: handle OAuth callback or restore existing session ─────────
