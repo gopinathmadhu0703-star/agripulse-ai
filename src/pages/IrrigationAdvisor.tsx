@@ -218,7 +218,7 @@ export function IrrigationAdvisor({ activeFarm, onSaveRecommendation, onForecast
       <div className="space-y-4">
         {/* Weather preview */}
         {today && (
-          <Card header="Current Weather">
+          <Card header="Today's Forecast">
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-baseline gap-1">
