@@ -190,6 +190,22 @@ describe('generateRecommendation', () => {
     })
   })
 
+  describe('sugarcane field example', () => {
+    it('uses stage root depth, depletion trigger and flood efficiency', () => {
+      const result = generateRecommendation({
+        farm: { ...mockFarm, crop: 'sugarcane', growthStage: 'initial', soilType: 'clay', irrigationMethod: 'flood', fieldAreaHa: 25 },
+        soilMoistureVwcPct: 18,
+        soilReadingAgeHours: 24,
+        horizonDays: 2,
+      }, { ...dryForecast, daily: dryForecast.daily.map(day => ({ ...day, et0Mm: 2.9, precipitationMm: 0 })) })
+      expect(result.action).toBe('irrigate')
+      expect(result.soilBufferMm).toBe(35.1)
+      expect(result.netDemandMm).toBe(21.22)
+      expect(result.applicationEfficiencyPct).toBe(60)
+      expect(result.irrigationVolumeLiters).toBe(8841667)
+    })
+  })
+
   describe('formula trace', () => {
     it('includes all required steps when soil data is provided', () => {
       const input: IrrigationInput = {
