@@ -108,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAuthState({ user, isLoading: false, error: null })
       setModal(false)
       await syncAllFromDb()
+      window.location.assign('/dashboard')
       return user
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Sign-in failed'
@@ -126,6 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAuthState({ user: result.user, isLoading: false, error: null })
         setModal(false)
         await syncAllFromDb()
+        window.location.assign('/dashboard')
       } else {
         setAuthState(s => ({ ...s, isLoading: false, error: null }))
       }
