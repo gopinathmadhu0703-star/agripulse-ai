@@ -40,6 +40,7 @@ export async function syncAllFromDb() {
     syncIrrigationFromDb(),
     syncSettingsFromDb(),
   ])
+  window.dispatchEvent(new Event('agripulse:data-synced'))
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -68,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await syncAllFromDb()
         } else {
           clearAllData()
+          window.dispatchEvent(new Event('agripulse:data-synced'))
           setAuthState(getAuthState())
         }
       } catch {
@@ -85,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         void syncAllFromDb()
       } else {
         clearAllData()
+        window.dispatchEvent(new Event('agripulse:data-synced'))
         setAuthState({ user: null, isLoading: false, error: null })
       }
     })
@@ -152,6 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await authSignOut()
     } finally {
       clearAllData()
+      window.dispatchEvent(new Event('agripulse:data-synced'))
       setAuthState({ user: null, isLoading: false, error: null })
     }
   }
