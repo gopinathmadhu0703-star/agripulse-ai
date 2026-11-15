@@ -226,7 +226,7 @@ export function IrrigationAdvisor({ activeFarm, onSaveRecommendation, onForecast
               {[
                 { label: 'Rain', value: formatMm(today.precipitationMm) },
                 { label: 'ET₀', value: formatMm(today.et0Mm) },
-                { label: 'Wind', value: `${today.windSpeedAvgKmh} km/h` },
+                { label: 'Max wind', value: `${today.windSpeedMaxKmh} km/h` },
               ].map(({ label, value }) => (
                 <div key={label} className="bg-[#F7F8F5] rounded px-2 py-1.5">
                   <p className="text-2xs text-[#9AA49A]">{label}</p>
