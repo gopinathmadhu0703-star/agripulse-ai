@@ -112,10 +112,11 @@ export function computeEffectiveRain(totalRainMm: number): number {
 export function computeSoilBuffer(
   soilMoistureVwcPct: number,
   soilType: SoilType,
-  crop: CropType
+  crop: CropType,
+  stage: import('../types').GrowthStage = 'mid'
 ): number {
   const { fc, pwp } = getSoilConstants(soilType)
-  const rootDepthMm = getRootDepthMm(crop)
+  const rootDepthMm = getRootDepthMm(crop, stage)
 
   const theta = Math.min(Math.max(soilMoistureVwcPct / 100, 0), 1)
   const paw = fc - pwp  // Plant-Available Water capacity (m³/m³)
@@ -264,7 +265,8 @@ export function runEngine(inputs: EngineInputs): EngineOutputs {
   const soilBuffer = computeSoilBuffer(
     inputs.soilMoistureVwcPct,
     inputs.soilType,
-    inputs.crop
+    inputs.crop,
+    inputs.growthStage
   )
   const netDemand = computeNetDemand(
     etcDaily,
