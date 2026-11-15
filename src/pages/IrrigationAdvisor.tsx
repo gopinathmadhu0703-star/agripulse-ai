@@ -57,13 +57,24 @@ export function IrrigationAdvisor({ activeFarm, onSaveRecommendation, onForecast
 
   function validate(): boolean {
     setSoilError(undefined)
+    setError(undefined)
+
     if (!skipSoilMoisture && soilMoistureStr !== '') {
-      const v = parseFloat(soilMoistureStr)
-      if (isNaN(v) || v < 0 || v > 100) {
+      const value = Number(soilMoistureStr)
+      if (!Number.isFinite(value) || value < 0 || value > 100) {
         setSoilError('VWC% must be a number between 0 and 100')
         return false
       }
     }
+
+    if (!skipSoilMoisture && readingAgeStr !== '') {
+      const age = Number(readingAgeStr)
+      if (!Number.isFinite(age) || age < 0) {
+        setError('Reading age must be a valid non-negative number of hours.')
+        return false
+      }
+    }
+
     return true
   }
 
@@ -80,8 +91,8 @@ export function IrrigationAdvisor({ activeFarm, onSaveRecommendation, onForecast
       onForecastFetched(forecast)
       setWeatherPreview(forecast)
 
-      const soilMoistureVwcPct = skipSoilMoisture || soilMoistureStr === '' ? undefined : parseFloat(soilMoistureStr)
-      const soilReadingAgeHours = readingAgeStr !== '' ? parseFloat(readingAgeStr) : undefined
+      const soilMoistureVwcPct = skipSoilMoisture || soilMoistureStr === '' ? undefined : Number(soilMoistureStr)
+      const soilReadingAgeHours = !skipSoilMoisture && readingAgeStr !== '' ? Number(readingAgeStr) : undefined
 
       const input: IrrigationInput = {
         farm: activeFarm,
