@@ -17,7 +17,6 @@ import type {
   IrrigationExperience,
   PostTag,
   PostLanguage,
-  CommunityGroup,
 } from '../types'
 import {
   dbGetPosts,
@@ -56,12 +55,12 @@ export { isDbAvailable }
 export function getPosts(): CommunityPost[] {
   try {
     const raw = localStorage.getItem(POSTS_KEY)
-    if (!raw) return [...DEMO_POSTS]
+    if (!raw) return []
     const parsed: CommunityPost[] = JSON.parse(raw)
-    const ids = new Set(parsed.map(p => p.id))
-    return [...parsed, ...DEMO_POSTS.filter(p => !ids.has(p.id))]
+    // Never display seeded demo posts as real farmer experiences.
+    return parsed.filter(p => p.tag !== 'demo')
   } catch {
-    return [...DEMO_POSTS]
+    return []
   }
 }
 
@@ -155,72 +154,3 @@ export function getFarmerProfile(userId: string): FarmerProfile | null {
 export function saveFarmerProfile(profile: FarmerProfile): void {
   localStorage.setItem(`${PROFILE_KEY}_${profile.userId}`, JSON.stringify(profile))
 }
-
-// ── Demo groups ───────────────────────────────────────────────────────────────
-
-export const DEMO_GROUPS: CommunityGroup[] = [
-  {
-    id: 'g_001', name: 'Dharmapuri Rice Farmers',
-    district: 'Dharmapuri', crop: 'rice', season: 'Kuruvai', memberCount: 47,
-    description: 'Paddy farmers in Dharmapuri sharing Kuruvai and Samba season practices.',
-  },
-  {
-    id: 'g_002', name: 'Coimbatore Cotton Growers',
-    district: 'Coimbatore', crop: 'cotton', season: 'Kharif', memberCount: 31,
-    description: 'Cotton cultivation experiences from Coimbatore region.',
-  },
-  {
-    id: 'g_003', name: 'Salem Sugarcane Network',
-    district: 'Salem', crop: 'sugarcane', memberCount: 22,
-    description: 'Sugarcane irrigation and water management group.',
-  },
-]
-
-// ── Demo posts (client-only, never persisted to DB) ───────────────────────────
-
-const DEMO_POSTS: CommunityPost[] = [
-  {
-    id: 'demo_001', authorId: 'demo_author_1', authorName: 'Murugan (Demo)',
-    language: 'ta', tag: 'demo',
-    experience: {
-      crop: 'rice', variety: 'ADT 43', district: 'Dharmapuri', village: 'Pennagaram area',
-      hideExactLocation: false, soilType: 'clay', farmAreaHa: 0.4, growthStage: 'mid',
-      cultivationStart: '2026-06-15', irrigationMethod: 'flood',
-      irrigationDates: ['2026-06-15','2026-06-22','2026-06-29','2026-07-06'],
-      sessions: 4, durationPerSessionMin: 240,
-      rainfallObservations: 'About 15 mm rain on June 20. Skipped one session.',
-      soilMoistureObservations: 'Soil visually dry at surface before each irrigation.',
-      observations: 'Flood irrigation every 7 days worked well for ADT 43 in mid-season.',
-    },
-    helpfulVotes: 12, votedByUserIds: [], commentCount: 3, reported: false,
-    createdAt: '2026-07-10T08:00:00.000Z', updatedAt: '2026-07-10T08:00:00.000Z',
-  },
-  {
-    id: 'demo_002', authorId: 'demo_author_2', authorName: 'Lakshmi (Demo)',
-    language: 'en', tag: 'demo',
-    experience: {
-      crop: 'tomato', district: 'Krishnagiri', village: 'Denkanikottai area',
-      hideExactLocation: true, soilType: 'loamy', farmAreaHa: 0.2, growthStage: 'mid',
-      cultivationStart: '2026-05-01', irrigationMethod: 'drip',
-      irrigationDates: ['2026-05-01','2026-05-04','2026-05-07'],
-      sessions: 3, durationPerSessionMin: 60, waterPerSessionLiters: 800,
-      rainfallObservations: 'No significant rain during this period.',
-      observations: 'Drip at 800 L per session every 3 days gave good flowering.',
-    },
-    helpfulVotes: 8, votedByUserIds: [], commentCount: 1, reported: false,
-    createdAt: '2026-06-20T10:30:00.000Z', updatedAt: '2026-06-20T10:30:00.000Z',
-  },
-  {
-    id: 'demo_003', authorId: 'demo_author_3', authorName: 'Rajan (Demo)',
-    language: 'hi', tag: 'demo',
-    experience: {
-      crop: 'cotton', district: 'Coimbatore', village: 'Kinathukadavu area',
-      hideExactLocation: false, soilType: 'sandy', farmAreaHa: 1.2, growthStage: 'initial',
-      cultivationStart: '2026-07-01', irrigationMethod: 'furrow',
-      irrigationDates: ['2026-07-01','2026-07-10'], sessions: 2,
-      observations: 'Initial stage furrow irrigation twice. Sandy soil drained faster than expected.',
-    },
-    helpfulVotes: 4, votedByUserIds: [], commentCount: 0, reported: false,
-    createdAt: '2026-07-15T07:00:00.000Z', updatedAt: '2026-07-15T07:00:00.000Z',
-  },
-]
