@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import {
   Droplets,
   CloudSun,
@@ -53,6 +54,14 @@ const STEPS = [
 
 export function LandingPage() {
   const { showSignInModal } = useAuth()
+  const location = useLocation()
+
+  useEffect(() => {
+    if ((location.state as { showSignIn?: boolean } | null)?.showSignIn) {
+      showSignInModal()
+      window.history.replaceState({}, document.title, window.location.pathname)
+    }
+  }, [location.state, showSignInModal])
 
   return (
     <div className="min-h-screen bg-[#F7F8F5]">
