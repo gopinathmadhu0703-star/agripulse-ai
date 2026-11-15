@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './components/auth/AuthProvider'
+import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { LandingPage } from './pages/LandingPage'
 import { Dashboard } from './pages/Dashboard'
 import { FarmManagement } from './pages/FarmManagement'
@@ -189,6 +190,7 @@ function App() {
               <LandingPage />
             }
           />
+          <Route element={<ProtectedRoute />}>
           <Route
             path="/dashboard"
             element={
@@ -263,6 +265,8 @@ function App() {
             }
           />
           
+          </Route>
+
           {/* OAuth Callback Route */}
           <Route
             path="/auth/callback"
@@ -272,8 +276,10 @@ function App() {
           />
 
           {/* Community Routes */}
+          <Route element={<ProtectedRoute />}>
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/community/post/:id" element={<PostDetailPage />} />
+          </Route>
           <Route path="/help" element={<HelpPage />} />
         </Routes>
       </BrowserRouter>
