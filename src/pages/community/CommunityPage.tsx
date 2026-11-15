@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Search, Edit3, AlertCircle } from 'lucide-react'
 import { DashboardLayout } from '../../components/DashboardLayout'
 import {
-  getPosts, filterPosts, voteHelpfulLocal, DEMO_GROUPS,
+  getPosts, filterPosts, voteHelpfulLocal,
   dbGetPosts, dbVoteHelpful, isDbAvailable,
 } from '../../store/communityStore'
 import { useAuth } from '../../components/auth/AuthProvider'
@@ -51,10 +51,8 @@ export function CommunityPage() {
     setDbError(null)
     try {
       const dbPosts = await dbGetPosts(filters)
-      // Merge with demo posts (demo posts are never in DB)
-      const localDemoPosts = getPosts().filter(p => p.tag === 'demo')
-      const ids = new Set(dbPosts.map(p => p.id))
-      setPosts([...dbPosts, ...localDemoPosts.filter(p => !ids.has(p.id))])
+      // Show only posts returned by Supabase. Never mix seeded/local demo content.
+      setPosts(dbPosts)
     } catch (e) {
       setDbError(e instanceof Error ? e.message : 'Failed to load posts')
       setPosts(getPosts()) // fallback to localStorage
@@ -186,12 +184,7 @@ export function CommunityPage() {
           <div className="bg-white rounded-lg border border-[#E0E5DD] p-4">
             <p className="text-sm font-semibold text-[#202820] mb-3">{t('community.groups.title')}</p>
             <div className="space-y-3">
-              {DEMO_GROUPS.map(g => (
-                <div key={g.id} className="p-3 bg-[#F7F8F5] rounded-md">
-                  <p className="text-xs font-semibold text-[#202820]">{g.name}</p>
-                  <p className="text-xs text-[#9AA49A] mt-0.5">{g.description}</p>
-                </div>
-              ))}
+              <p className="text-xs text-[#687168] leading-relaxed">Community groups are not connected to the live database yet. Only real posts from registered farmers are shown here.</p>
             </div>
           </div>
         </div>
