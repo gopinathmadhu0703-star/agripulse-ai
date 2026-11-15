@@ -14,7 +14,7 @@ import {
 import { syncFarmsFromDb }       from '../../store/farmStore'
 import { syncHistoryFromDb }     from '../../store/historyStore'
 import { syncIrrigationFromDb }  from '../../store/irrigationStore'
-import { syncSettingsFromDb }    from '../../store/settingsStore'
+import { syncSettingsFromDb, clearAllData, prepareLocalDataForUser } from '../../store/settingsStore'
 import { SignInModal } from './SignInModal'
 
 interface AuthContextType {
@@ -63,9 +63,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           user = await checkAuthStatus()
         }
         if (user) {
+          prepareLocalDataForUser(user.id)
           setAuthState({ user, isLoading: false, error: null })
           await syncAllFromDb()
         } else {
+          clearAllData()
           setAuthState(getAuthState())
         }
       } catch {
@@ -77,9 +79,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ── Listen for Supabase auth events (token refresh, sign-out from another tab)
   useEffect(() => {
     const unsub = onAuthStateChange(user => {
-      setAuthState({ user, isLoading: false, error: null })
       if (user) {
+        prepareLocalDataForUser(user.id)
+        setAuthState({ user, isLoading: false, error: null })
         void syncAllFromDb()
+      } else {
+        clearAllData()
+        setAuthState({ user: null, isLoading: false, error: null })
       }
     })
     return unsub
@@ -105,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAuthState(s => ({ ...s, isLoading: true, error: null }))
       const { signInWithEmail: storeSignInWithEmail } = await import('../../store/authStore')
       const user = await storeSignInWithEmail(email, password)
+      prepareLocalDataForUser(user.id)
       setAuthState({ user, isLoading: false, error: null })
       setModal(false)
       await syncAllFromDb()
@@ -124,6 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { signUpWithEmail: storeSignUpWithEmail } = await import('../../store/authStore')
       const result = await storeSignUpWithEmail(email, password, displayName)
       if (result.user && !result.requiresEmailConfirmation) {
+        prepareLocalDataForUser(result.user.id)
         setAuthState({ user: result.user, isLoading: false, error: null })
         setModal(false)
         await syncAllFromDb()
@@ -140,8 +148,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const handleSignOut = async () => {
-    await authSignOut()
-    setAuthState({ user: null, isLoading: false, error: null })
+    try {
+      await authSignOut()
+    } finally {
+      clearAllData()
+      setAuthState({ user: null, isLoading: false, error: null })
+    }
   }
 
   // Backward compatibility alias for existing code

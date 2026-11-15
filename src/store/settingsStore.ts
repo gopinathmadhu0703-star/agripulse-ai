@@ -81,13 +81,29 @@ export function dismissNotification(id: string): void {
   }
 }
 
+const LOCAL_DATA_OWNER_KEY = 'agripulse_local_data_owner'
+
+/**
+ * Keep browser-cached farmer data scoped to exactly one signed-in account.
+ * A cache without an owner marker is treated as untrusted and discarded.
+ */
+export function prepareLocalDataForUser(userId: string): void {
+  if (!userId) return
+  const currentOwner = localStorage.getItem(LOCAL_DATA_OWNER_KEY)
+  if (currentOwner !== userId) {
+    clearAllData()
+    localStorage.setItem(LOCAL_DATA_OWNER_KEY, userId)
+  }
+}
+
+/** Clear every AgriPulse data cache while preserving the Supabase auth session key. */
 export function clearAllData(): void {
-  const keys = [
-    'agripulse_farms','agripulse_active_farm_id',
-    'agripulse_tasks','agripulse_events',
-    'agripulse_history','agripulse_settings',
-  ]
-  keys.forEach(k => localStorage.removeItem(k))
+  for (let i = localStorage.length - 1; i >= 0; i -= 1) {
+    const key = localStorage.key(i)
+    if (key?.startsWith('agripulse_') && key !== 'agripulse_auth') {
+      localStorage.removeItem(key)
+    }
+  }
 }
 
 // ── DB sync ───────────────────────────────────────────────────────────────────
