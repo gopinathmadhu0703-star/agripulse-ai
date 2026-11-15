@@ -90,11 +90,11 @@ export function getRootDepthMm(crop: CropType, stage: GrowthStage = 'mid'): numb
 
 /**
  * Fraction of total available water that may be depleted before irrigation.
- * Sugarcane p=0.65 is supported by published sugarcane scheduling references.
+ * Sugarcane p=0.60 is based on published sugarcane scheduling guidance.
  * Other crops use a disclosed generic 0.50 fallback pending crop-specific calibration.
  */
 export function getDepletionFraction(crop: CropType): number {
-  return crop === 'sugarcane' ? 0.65 : 0.50
+  return crop === 'sugarcane' ? 0.60 : 0.50
 }
 
 export function getCropLabel(crop: CropType): string {
