@@ -65,7 +65,7 @@ export function RecommendationPanel({ result }: RecommendationPanelProps) {
             <Metric
               label="Gross Volume"
               value={formatVolume(result.irrigationVolumeLiters)}
-              sub={`at ${result.applicationEfficiencyPct}% efficiency`}
+              sub={`at ${(result.applicationEfficiencyPct ?? 100)}% efficiency`}
               highlight
             />
           )}
