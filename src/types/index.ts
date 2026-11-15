@@ -110,7 +110,8 @@ export interface RecommendationResult {
   effectiveRainMm: number          // mm over horizon
   soilBufferMm: number             // mm of available water in root zone
   netDemandMm: number              // mm over horizon (may be negative)
-  irrigationVolumeLiters: number   // litres (0 if no irrigation needed)
+  irrigationVolumeLiters: number   // estimated gross applied litres (0 if no irrigation needed)
+  applicationEfficiencyPct: number // assumed field application efficiency (%)
   formulaTrace: FormulaStep[]
   assumptions: string[]
   warnings: string[]

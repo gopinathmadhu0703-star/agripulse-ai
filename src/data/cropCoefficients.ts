@@ -76,8 +76,25 @@ export function getKc(crop: CropType, stage: GrowthStage): number {
   return CROP_TABLE[crop].kc[stage]
 }
 
-export function getRootDepthMm(crop: CropType): number {
+/**
+ * Effective root depth for the selected growth stage.
+ * Sugarcane uses AquaCrop's published effective-root-zone range:
+ * minimum 0.30 m and maximum 1.80 m. Initial stage maps to the minimum;
+ * established mid/end stages map to the maximum.
+ * Other crops retain their representative lookup depth pending calibration.
+ */
+export function getRootDepthMm(crop: CropType, stage: GrowthStage = 'mid'): number {
+  if (crop === 'sugarcane') return stage === 'initial' ? 300 : 1800
   return CROP_TABLE[crop].rootDepthMm
+}
+
+/**
+ * Fraction of total available water that may be depleted before irrigation.
+ * Sugarcane p=0.60 is based on published sugarcane scheduling guidance.
+ * Other crops use a disclosed generic 0.50 fallback pending crop-specific calibration.
+ */
+export function getDepletionFraction(crop: CropType): number {
+  return crop === 'sugarcane' ? 0.60 : 0.50
 }
 
 export function getCropLabel(crop: CropType): string {

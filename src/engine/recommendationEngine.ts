@@ -17,9 +17,11 @@ import type {
 import {
   computeETc,
   computeEffectiveRain,
-  computeSoilBuffer,
-  computeNetDemand,
   computeIrrigationVolumeLiters,
+  computeCurrentDepletionMm,
+  computeReadilyAvailableWaterMm,
+  computeTriggeredNetDemandMm,
+  getApplicationEfficiency,
 } from './irrigationEngine'
 import { getKc, getRootDepthMm } from '../data/cropCoefficients'
 import { getSoilConstants } from '../data/soilConstants'
@@ -48,10 +50,12 @@ export function generateRecommendation(
     'Kc values are for sub-humid conditions (RH_min ≈ 45%, u₂ ≈ 2 m/s); local adjustment not applied.',
     'Effective rainfall = 80% of forecast precipitation (FAO simplified method for events < 40 mm/day).',
     'Soil moisture distribution is assumed uniform throughout the root zone.',
-    'Root depth is a representative mid-season value from FAO-56 Table 22.',
-    'Soil hydraulic constants (FC, PWP) are textural-class averages from FAO-56 Table 9.',
+    'Sugarcane root depth uses FAO AquaCrop minimum/maximum effective depths mapped approximately to the selected stage; other crops use representative lookup depths.',
+    'Soil hydraulic constants (FC, PWP) are generic textural-class averages; actual field values can differ substantially.',
     'ET₀ is from Open-Meteo FAO-56 Penman-Monteith model — reflects reference grass surface.',
     'Soil moisture input is a manual volumetric estimate, NOT a sensor reading.',
+    'Application efficiency is an indicative method-level assumption; field performance must be measured locally.',
+    'Sugarcane allowable depletion p=0.60 is a scheduling assumption; other crops use generic p=0.50 pending local calibration.',
     'This recommendation is an estimate and does not substitute for professional agronomic advice.',
   ]
 
@@ -112,11 +116,24 @@ export function generateRecommendation(
   const kc = getKc(crop, growthStage)
   const etcDaily = computeETc(avgET0Daily, kc)
   const effectiveRain = computeEffectiveRain(totalRainMm)
-  const soilBuffer = computeSoilBuffer(soilMoistureVwcPct, soilType, crop)
-  const netDemand = computeNetDemand(etcDaily, horizonDays, effectiveRain, soilBuffer)
-  const irrigationVolume = computeIrrigationVolumeLiters(netDemand, fieldAreaHa)
+  const rootDepthMm = getRootDepthMm(crop, growthStage)
+  const currentDepletion = computeCurrentDepletionMm(soilMoistureVwcPct, soilType, crop, growthStage)
+  const readilyAvailableWater = computeReadilyAvailableWaterMm(soilType, crop, growthStage)
+  const soilBuffer = readilyAvailableWater
+  const netDemand = computeTriggeredNetDemandMm(
+    currentDepletion,
+    etcDaily * horizonDays,
+    effectiveRain,
+    readilyAvailableWater
+  )
+  const applicationEfficiency = getApplicationEfficiency(farm.irrigationMethod)
+  const irrigationVolume = computeIrrigationVolumeLiters(netDemand, fieldAreaHa, applicationEfficiency)
 
   // ── Additional warnings ───────────────────────────────────────────────────
+
+  if (soilMoistureVwcPct <= getSoilConstants(soilType).pwp * 100) {
+    warnings.push(`Entered VWC% (${soilMoistureVwcPct}%) is at or below the assumed permanent wilting point for ${soilType} soil (${(getSoilConstants(soilType).pwp * 100).toFixed(0)}%). Verify the soil texture and moisture reading; the crop may already be under severe water stress.`)
+  }
 
   if (soilMoistureVwcPct > getSoilConstants(soilType).fc * 100) {
     warnings.push(
@@ -142,10 +159,9 @@ export function generateRecommendation(
 
   // ── Build formula trace ───────────────────────────────────────────────────
 
-  const rootDepthMm = getRootDepthMm(crop)
   const { fc, pwp } = getSoilConstants(soilType)
   const theta = soilMoistureVwcPct / 100
-  const availableFraction = Math.min(Math.max(theta - pwp, 0), fc - pwp)
+  const taw = (fc - pwp) * rootDepthMm
 
   const formulaTrace: FormulaStep[] = [
     {
@@ -191,30 +207,30 @@ export function generateRecommendation(
       unit: 'm³/m³',
     },
     {
-      label: 'Plant-Available Water (above PWP, clamped)',
-      formulaStr: 'AvailFraction = clamp(θ − PWP, 0, FC − PWP)',
-      substitution: `= clamp(${theta.toFixed(3)} − ${pwp}, 0, ${fc} − ${pwp}) = clamp(${(theta - pwp).toFixed(3)}, 0, ${(fc - pwp).toFixed(3)})`,
-      result: Math.round(availableFraction * 1000) / 1000,
-      unit: 'm³/m³',
+      label: 'Current Root-Zone Depletion',
+      formulaStr: 'Dr = clamp(FC − θ, 0, FC − PWP) × rootDepth',
+      substitution: `= clamp(${fc} − ${theta.toFixed(3)}, 0, ${fc - pwp}) × ${rootDepthMm} mm`,
+      result: currentDepletion,
+      unit: 'mm',
     },
     {
-      label: 'Soil Water Buffer',
-      formulaStr: 'SoilBuffer = availFraction × rootDepth',
-      substitution: `= ${availableFraction.toFixed(3)} m³/m³ × ${rootDepthMm} mm`,
+      label: 'Readily Available Water (RAW)',
+      formulaStr: 'RAW = p × TAW',
+      substitution: `= ${crop === 'sugarcane' ? 0.60 : 0.50} × ${taw.toFixed(2)} mm`,
       result: soilBuffer,
       unit: 'mm',
     },
     {
       label: 'Net Irrigation Demand',
-      formulaStr: 'NetDemand = (ETc × horizonDays) − EffectiveRain − SoilBuffer',
-      substitution: `= (${etcDaily} mm/day × ${horizonDays} days) − ${effectiveRain} mm − ${soilBuffer} mm`,
+      formulaStr: 'NetDemand = max(0, Dr + (ETc × days) − EffectiveRain − RAW)',
+      substitution: `= max(0, ${currentDepletion} + (${etcDaily} × ${horizonDays}) − ${effectiveRain} − ${soilBuffer})`,
       result: netDemand,
       unit: 'mm',
     },
     {
       label: 'Irrigation Volume',
-      formulaStr: 'Volume = max(0, NetDemand) × fieldArea_ha × 10,000',
-      substitution: `= max(0, ${netDemand} mm) × ${fieldAreaHa} ha × 10,000 m²/ha`,
+      formulaStr: 'GrossVolume = NetDemand ÷ applicationEfficiency × fieldArea_ha × 10,000',
+      substitution: `= ${netDemand} mm ÷ ${Math.round(applicationEfficiency * 100)}% × ${fieldAreaHa} ha × 10,000 m²/ha`,
       result: irrigationVolume,
       unit: 'litres',
     },
@@ -236,7 +252,8 @@ export function generateRecommendation(
     netDemand,
     formulaTrace,
     assumptions,
-    warnings
+    warnings,
+    applicationEfficiency
   )
 }
 
@@ -252,7 +269,8 @@ function buildResult(
   netDemandMm: number,
   formulaTrace: FormulaStep[],
   assumptions: string[],
-  warnings: string[]
+  warnings: string[],
+  applicationEfficiency = 1
 ): RecommendationResult {
   return {
     action,
@@ -264,8 +282,10 @@ function buildResult(
     netDemandMm,
     irrigationVolumeLiters: computeIrrigationVolumeLiters(
       netDemandMm,
-      input.farm.fieldAreaHa
+      input.farm.fieldAreaHa,
+      applicationEfficiency
     ),
+    applicationEfficiencyPct: Math.round(applicationEfficiency * 100),
     formulaTrace,
     assumptions,
     warnings,

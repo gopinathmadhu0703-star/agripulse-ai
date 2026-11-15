@@ -11,7 +11,7 @@
  */
 
 import type { SoilType, CropType } from '../types'
-import { getKc, getRootDepthMm } from '../data/cropCoefficients'
+import { getKc, getRootDepthMm, getDepletionFraction } from '../data/cropCoefficients'
 import { getSoilConstants } from '../data/soilConstants'
 
 // ── Step 1: Daily ET₀ from hourly Open-Meteo data ────────────────────────────
@@ -112,10 +112,11 @@ export function computeEffectiveRain(totalRainMm: number): number {
 export function computeSoilBuffer(
   soilMoistureVwcPct: number,
   soilType: SoilType,
-  crop: CropType
+  crop: CropType,
+  stage: import('../types').GrowthStage = 'mid'
 ): number {
   const { fc, pwp } = getSoilConstants(soilType)
-  const rootDepthMm = getRootDepthMm(crop)
+  const rootDepthMm = getRootDepthMm(crop, stage)
 
   const theta = Math.min(Math.max(soilMoistureVwcPct / 100, 0), 1)
   const paw = fc - pwp  // Plant-Available Water capacity (m³/m³)
@@ -125,6 +126,52 @@ export function computeSoilBuffer(
 
   const bufferMm = availableFraction * rootDepthMm
   return Math.round(bufferMm * 100) / 100
+}
+
+/**
+ * Total available water (TAW) in the effective root zone.
+ * TAW = (FC - PWP) × root depth.
+ */
+export function computeTotalAvailableWaterMm(soilType: SoilType, crop: CropType, stage: import('../types').GrowthStage): number {
+  const { fc, pwp } = getSoilConstants(soilType)
+  return Math.round((fc - pwp) * getRootDepthMm(crop, stage) * 100) / 100
+}
+
+/**
+ * Current root-zone depletion from field capacity.
+ * Dr = clamp(FC - theta, 0, FC - PWP) × root depth.
+ */
+export function computeCurrentDepletionMm(
+  soilMoistureVwcPct: number,
+  soilType: SoilType,
+  crop: CropType,
+  stage: import('../types').GrowthStage
+): number {
+  const { fc, pwp } = getSoilConstants(soilType)
+  const theta = soilMoistureVwcPct / 100
+  const depletionFraction = Math.min(Math.max(fc - theta, 0), fc - pwp)
+  return Math.round(depletionFraction * getRootDepthMm(crop, stage) * 100) / 100
+}
+
+/** Readily available water (RAW) = p × TAW. */
+export function computeReadilyAvailableWaterMm(soilType: SoilType, crop: CropType, stage: import('../types').GrowthStage): number {
+  return Math.round(computeTotalAvailableWaterMm(soilType, crop, stage) * getDepletionFraction(crop) * 100) / 100
+}
+
+/** Net depth needed to bring forecast depletion back to the RAW trigger. */
+export function computeTriggeredNetDemandMm(
+  currentDepletionMm: number,
+  cropDemandMm: number,
+  effectiveRainMm: number,
+  readilyAvailableWaterMm: number
+): number {
+  const projectedDepletion = currentDepletionMm + cropDemandMm - effectiveRainMm
+  return Math.round(Math.max(0, projectedDepletion - readilyAvailableWaterMm) * 100) / 100
+}
+
+/** Indicative field application efficiency by method (FAO guidance). */
+export function getApplicationEfficiency(method: import('../types').IrrigationMethod): number {
+  return ({ drip: 0.90, sprinkler: 0.75, furrow: 0.60, flood: 0.60 })[method]
 }
 
 // ── Step 5: Net Irrigation Demand ─────────────────────────────────────────────
@@ -179,10 +226,13 @@ export function computeNetDemand(
  */
 export function computeIrrigationVolumeLiters(
   netDemandMm: number,
-  fieldAreaHa: number
+  fieldAreaHa: number,
+  applicationEfficiency = 1
 ): number {
+  if (!Number.isFinite(applicationEfficiency) || applicationEfficiency <= 0 || applicationEfficiency > 1) return 0
   const fieldAreaM2 = fieldAreaHa * 10000
-  const volume = Math.max(0, netDemandMm) * fieldAreaM2
+  const grossDepthMm = Math.max(0, netDemandMm) / applicationEfficiency
+  const volume = grossDepthMm * fieldAreaM2
   return Math.round(volume)
 }
 
@@ -215,7 +265,8 @@ export function runEngine(inputs: EngineInputs): EngineOutputs {
   const soilBuffer = computeSoilBuffer(
     inputs.soilMoistureVwcPct,
     inputs.soilType,
-    inputs.crop
+    inputs.crop,
+    inputs.growthStage
   )
   const netDemand = computeNetDemand(
     etcDaily,

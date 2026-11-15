@@ -63,15 +63,15 @@ export function RecommendationPanel({ result }: RecommendationPanelProps) {
           <Metric label="Net Demand" value={result.netDemandMm > 0 ? formatMm(result.netDemandMm) : '—'} sub="over horizon" />
           {result.action === 'irrigate' && (
             <Metric
-              label="Volume"
+              label="Gross Volume"
               value={formatVolume(result.irrigationVolumeLiters)}
-              sub="estimated"
+              sub={`at ${(result.applicationEfficiencyPct ?? 100)}% efficiency`}
               highlight
             />
           )}
           <Metric label="ETc/day" value={formatMm(result.etcDailyMm)} sub="crop water use" />
           <Metric label="Eff. Rain" value={formatMm(result.effectiveRainMm)} sub="forecast" />
-          <Metric label="Soil Buffer" value={formatMm(result.soilBufferMm)} sub="available" />
+          <Metric label="Readily Available Water" value={formatMm(result.soilBufferMm)} sub="depletion trigger" />
         </div>
       )}
 
