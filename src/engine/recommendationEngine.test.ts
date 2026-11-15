@@ -203,6 +203,7 @@ describe('generateRecommendation', () => {
       expect(result.netDemandMm).toBe(23.92)
       expect(result.applicationEfficiencyPct).toBe(60)
       expect(result.irrigationVolumeLiters).toBe(9966667)
+      expect(result.warnings.some(w => w.includes('at or below the assumed permanent wilting point'))).toBe(true)
     })
   })
 
