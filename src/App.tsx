@@ -90,6 +90,22 @@ function App() {
     }
   }, [activeFarm, forecasts, loadForecast])
 
+  // Rehydrate React state after AuthProvider finishes loading this user's data.
+  useEffect(() => {
+    const refreshFromStorage = () => {
+      setFarms(getFarms())
+      setActiveFarmIdState(getActiveFarmId())
+      setSettings(getSettings())
+      setRecommendations(getRecommendations())
+      setTasks(getTasks())
+      setEvents(getEvents())
+      setForecasts({})
+    }
+
+    window.addEventListener('agripulse:data-synced', refreshFromStorage)
+    return () => window.removeEventListener('agripulse:data-synced', refreshFromStorage)
+  }, [])
+
   // ── Farm handlers ──────────────────────────────────────────────────────────
   function handleSaveFarm(farm: Farm) {
     saveFarm(farm)
