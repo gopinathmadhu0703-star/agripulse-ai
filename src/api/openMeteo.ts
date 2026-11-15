@@ -104,91 +104,100 @@ interface WeatherApiResponse {
   latitude: number
   longitude: number
   timezone: string
-  hourly: {
+  daily: {
     time: string[]
     et0_fao_evapotranspiration: number[]
-    precipitation: number[]
-    precipitation_probability: number[]
-    temperature_2m: number[]
-    wind_speed_10m: number[]
+    precipitation_sum: number[]
+    precipitation_probability_max: number[]
+    temperature_2m_max: number[]
+    temperature_2m_min: number[]
+    wind_speed_10m_max: number[]
     weather_code: number[]
   }
 }
 
 /**
- * Aggregate hourly values to daily summaries.
- * Each day covers 24 hourly slots.
+ * Map Open-Meteo's calendar-day aggregates into the app's weather model.
+ * Using the API's daily endpoint avoids treating a partial first forecast day
+ * as a full 24-hour day when a request is made after midnight.
  */
-function aggregateHourlyToDaily(
-  data: WeatherApiResponse['hourly'],
-  days: number
-): DailyWeather[] {
-  const result: DailyWeather[] = []
+function mapDailyWeather(data: WeatherApiResponse['daily']): DailyWeather[] {
+  const fields = [
+    data.et0_fao_evapotranspiration,
+    data.precipitation_sum,
+    data.precipitation_probability_max,
+    data.temperature_2m_max,
+    data.temperature_2m_min,
+    data.wind_speed_10m_max,
+    data.weather_code,
+  ]
+  const expectedLength = data.time.length
 
-  for (let d = 0; d < days; d++) {
-    const start = d * 24
-    const end = start + 24
-
-    // Slices for this day
-    const et0Slice = data.et0_fao_evapotranspiration.slice(start, end)
-    const rainSlice = data.precipitation.slice(start, end)
-    const probSlice = data.precipitation_probability.slice(start, end)
-    const tempSlice = data.temperature_2m.slice(start, end)
-    const windSlice = data.wind_speed_10m.slice(start, end)
-    const codeSlice = data.weather_code.slice(start, end)
-
-    if (et0Slice.length === 0) break
-
-    const sum = (arr: number[]) => arr.reduce((a, b) => a + b, 0)
-    const avg = (arr: number[]) => (arr.length > 0 ? sum(arr) / arr.length : 0)
-    const max = (arr: number[]) => Math.max(...arr)
-    const min = (arr: number[]) => Math.min(...arr)
-
-    // Most frequent weather code for the day
-    const codeFreq: Record<number, number> = {}
-    for (const c of codeSlice) {
-      codeFreq[c] = (codeFreq[c] ?? 0) + 1
-    }
-    const dominantCode = parseInt(
-      Object.entries(codeFreq).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '0'
-    )
-
-    // Date: extract YYYY-MM-DD from first slot of the day
-    const dateStr = data.time[start]?.slice(0, 10) ?? ''
-
-    result.push({
-      date: dateStr,
-      et0Mm: Math.round(sum(et0Slice) * 100) / 100,
-      precipitationMm: Math.round(sum(rainSlice) * 100) / 100,
-      precipProbabilityMax: Math.round(max(probSlice)),
-      tempMaxC: Math.round(max(tempSlice) * 10) / 10,
-      tempMinC: Math.round(min(tempSlice) * 10) / 10,
-      windSpeedAvgKmh: Math.round(avg(windSlice) * 10) / 10,
-      dominantWeatherCode: dominantCode,
-    })
+  if (expectedLength === 0 || fields.some((values) => values.length !== expectedLength)) {
+    throw new WeatherAPIError('Weather API returned incomplete daily forecast data.')
   }
 
-  return result
+  return data.time.map((date, index) => {
+    const values = fields.map((items) => items[index])
+    if (!values.every((value) => Number.isFinite(value))) {
+      throw new WeatherAPIError(`Weather API returned invalid forecast values for ${date}.`)
+    }
+
+    const [
+      et0Mm,
+      precipitationMm,
+      precipProbabilityMax,
+      tempMaxC,
+      tempMinC,
+      windSpeedMaxKmh,
+      weatherCode,
+    ] = values
+
+    if (
+      et0Mm < 0 ||
+      precipitationMm < 0 ||
+      precipProbabilityMax < 0 ||
+      precipProbabilityMax > 100 ||
+      windSpeedMaxKmh < 0
+    ) {
+      throw new WeatherAPIError(`Weather API returned out-of-range forecast values for ${date}.`)
+    }
+
+    return {
+      date,
+      et0Mm: Math.round(et0Mm * 100) / 100,
+      precipitationMm: Math.round(precipitationMm * 100) / 100,
+      precipProbabilityMax: Math.round(precipProbabilityMax),
+      tempMaxC: Math.round(tempMaxC * 10) / 10,
+      tempMinC: Math.round(tempMinC * 10) / 10,
+      windSpeedMaxKmh: Math.round(windSpeedMaxKmh * 10) / 10,
+      dominantWeatherCode: Math.round(weatherCode),
+    }
+  })
 }
 
 /**
- * Fetch a 7-day hourly weather forecast and aggregate to daily summaries.
- * Retries once on NetworkError with a 1 s delay.
- * Always includes fetchedAt timestamp.
- * Throws WeatherAPIError on non-200 response.
- * Throws NetworkError if both attempts fail.
+ * Fetch calendar-day weather summaries from Open-Meteo.
+ * Retries once on network failure and validates the returned daily series.
  */
 export async function fetchWeatherForecast(
   lat: number,
   lon: number,
   days = 7
 ): Promise<WeatherForecast> {
+  if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lon) || lon < -180 || lon > 180) {
+    throw new WeatherAPIError('Farm coordinates are invalid.')
+  }
+  if (!Number.isInteger(days) || days < 1 || days > 16) {
+    throw new WeatherAPIError('Forecast length must be between 1 and 16 days.')
+  }
+
   const url =
     `https://api.open-meteo.com/v1/forecast` +
     `?latitude=${lat}&longitude=${lon}` +
-    `&hourly=et0_fao_evapotranspiration,precipitation,precipitation_probability,temperature_2m,wind_speed_10m,weather_code` +
+    `&daily=et0_fao_evapotranspiration,precipitation_sum,precipitation_probability_max,temperature_2m_max,temperature_2m_min,wind_speed_10m_max,weather_code` +
     `&forecast_days=${days}` +
-    `&timezone=auto`
+    `&timezone=auto&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm`
 
   async function attemptFetch(): Promise<Response> {
     try {
@@ -204,8 +213,7 @@ export async function fetchWeatherForecast(
   try {
     response = await attemptFetch()
   } catch {
-    // Retry once after 1 s
-    await new Promise((r) => setTimeout(r, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000))
     response = await attemptFetch()
   }
 
@@ -216,13 +224,32 @@ export async function fetchWeatherForecast(
     )
   }
 
-  const data = (await response.json()) as WeatherApiResponse
+  let data: WeatherApiResponse
+  try {
+    data = (await response.json()) as WeatherApiResponse
+  } catch {
+    throw new WeatherAPIError('Weather API returned an unreadable response.')
+  }
+
+  if (
+    !Number.isFinite(data.latitude) ||
+    !Number.isFinite(data.longitude) ||
+    typeof data.timezone !== 'string' ||
+    !data.daily
+  ) {
+    throw new WeatherAPIError('Weather API response is missing required location or daily forecast data.')
+  }
+
+  const daily = mapDailyWeather(data.daily)
+  if (daily.length !== days) {
+    throw new WeatherAPIError(`Weather API returned ${daily.length} of ${days} requested forecast days.`)
+  }
 
   return {
     latitude: data.latitude,
     longitude: data.longitude,
     timezone: data.timezone,
-    daily: aggregateHourlyToDaily(data.hourly, days),
+    daily,
     fetchedAt: new Date().toISOString(),
   }
 }
