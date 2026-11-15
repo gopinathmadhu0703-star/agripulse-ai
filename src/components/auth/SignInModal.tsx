@@ -274,16 +274,8 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
             )}
           </div>
 
-          {/* Footer - Local mode notice */}
-          <div className="px-6 py-3.5 bg-[#F8F9F5] border-t border-[#E0E5DD] flex items-center justify-between text-xs">
-            <span className="text-[#687168]">Want to test offline?</span>
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-[#24452D] font-semibold hover:underline"
-            >
-              Use Browser Storage
-            </button>
+          <div className="px-6 py-3.5 bg-[#F8F9F5] border-t border-[#E0E5DD] text-center text-xs text-[#687168]">
+            Your account is securely managed by Supabase.
           </div>
         </div>
       </div>

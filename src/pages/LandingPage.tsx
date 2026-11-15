@@ -134,7 +134,7 @@ export function LandingPage() {
               onClick={showSignInModal}
               className="px-5 py-3 border border-[#E0E5DD] text-[#202820] text-sm font-medium rounded-md hover:bg-[#EAF0E6] hover:border-[#527A45] transition-colors"
             >
-              Sign in with demo account
+              Sign in or create account
             </button>
           </div>
         </div>
