@@ -6,6 +6,10 @@ import {
   computeSoilBuffer,
   computeNetDemand,
   computeIrrigationVolumeLiters,
+  computeCurrentDepletionMm,
+  computeReadilyAvailableWaterMm,
+  computeTriggeredNetDemandMm,
+  getApplicationEfficiency,
 } from './irrigationEngine'
 
 describe('computeDailyET0', () => {
@@ -85,11 +89,28 @@ describe('computeSoilBuffer', () => {
     expect(computeSoilBuffer(0, 'sandy', 'wheat')).toBe(0)
   })
 
-  it('uses correct root depth for sugarcane (1200 mm)', () => {
+  it('uses stage-specific initial root depth for sugarcane (300 mm)', () => {
     // Sandy: FC=0.10, PWP=0.04, PAW=0.06
     // θ = 7% = 0.07; availFraction = clamp(0.07 - 0.04, 0, 0.06) = 0.03
-    // buffer = 0.03 × 1200 = 36 mm
-    expect(computeSoilBuffer(7, 'sandy', 'sugarcane')).toBe(36)
+    // buffer = 0.03 × 300 = 9 mm
+    expect(computeSoilBuffer(7, 'sandy', 'sugarcane', 'initial')).toBe(9)
+  })
+})
+
+describe('FAO-style depletion scheduling', () => {
+  it('calculates sugarcane initial-stage RAW with a 300 mm root zone', () => {
+    // Clay TAW = (0.36 - 0.18) × 300 = 54 mm; p = 0.65; RAW = 35.1 mm
+    expect(computeReadilyAvailableWaterMm('clay', 'sugarcane', 'initial')).toBe(35.1)
+  })
+  it('calculates current depletion at field-capacity minus VWC', () => {
+    expect(computeCurrentDepletionMm(18, 'clay', 'sugarcane', 'initial')).toBe(54)
+  })
+  it('only recommends net water above the allowable depletion trigger', () => {
+    expect(computeTriggeredNetDemandMm(54, 2.32, 0, 35.1)).toBe(21.22)
+  })
+  it('converts net depth to gross flood volume using 60% efficiency', () => {
+    expect(getApplicationEfficiency('flood')).toBe(0.6)
+    expect(computeIrrigationVolumeLiters(21.22, 25, 0.6)).toBe(8841667)
   })
 })
 
